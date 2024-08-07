@@ -28,6 +28,7 @@
           opentelemetry-sdk opentelemetry-exporter-otlp
           neo4j
           pandas
+          fastapi uvicorn
         ]);
         project = pkgs.callPackage ./package.nix {
           my_python = my_python;
@@ -37,9 +38,18 @@
         devshells.default = {
             env = [];
             devshell.startup.pypath = pkgs.lib.noDepEntry ''
-              export PYTHONPATH="$PYTHONPATH:./src"
+              export PYTHONPATH="$PYTHONPATH:./src:./test"
             '';
-            commands = [ ];
+            commands = [
+            {
+              help = "serve knfunc: serve_knfunc <type>; i.e. serve_knfunc iodocument";
+              name = "serve_knfunc";
+              command = ''
+                func_name="$1"
+                uvicorn --host 127.0.0.1 --port 8080 knfunc.$func_name:app
+              '';
+            }
+            ];
             packages = [
               my_python
             ] ++ (with pkgs; [
