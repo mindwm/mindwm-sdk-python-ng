@@ -1,4 +1,4 @@
-from mindwm.model.events import IoDocument, CloudEvent
+from mindwm.model.events import IoDocument
 import mindwm.model.graph as g
 from mindwm.knfunc.decorators import iodocument_event, app, logger
 
