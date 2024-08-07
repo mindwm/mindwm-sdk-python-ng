@@ -1,0 +1,19 @@
+{
+  "id": "qwe",
+  "source": "snpnb",
+  "specversion": "1.0",
+  "data": {
+    "data": {
+      "input": "uptime",
+      "output": "now",
+      "ps1": "> "
+    },
+    "type": "iodocument"
+  },
+  "datacontenttype": null,
+  "dataschema": null,
+  "subject": "uptime",
+  "time": null,
+  "data_base64": null,
+  "knativebrokerttl": "255"
+}

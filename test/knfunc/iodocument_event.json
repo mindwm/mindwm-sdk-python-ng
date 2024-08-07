@@ -1,1 +1,16 @@
-{"id":"qwe","source":"snpnb","specversion":"1.0","data":{"data":{"input":"uptime","output":"now","ps1":"> "},"type":"iodocument"},"datacontenttype":null,"dataschema":null,"subject":"uptime","time":null,"data_base64":null,"knativebrokerttl":"255"}
+{
+  "id": "43cad2cd-7214-47f0-8296-76788081ea52",
+  "source": "mindwm.pion.mindwm-stg1.tmux.L3Zhci90bXV4L21pbmR3bQ==.c32d56f3-6257-3201-3eab-c1ae8ff3891b.0.2.iodocument",
+  "specversion": "1.0",
+  "knativebrokerttl": "255",
+  "datacontenttype": "application/json",
+  "subject": "uptime",
+  "data": {
+    "data": {
+      "input": "uptime",
+      "output": "19:26:58  up 11 days  9:46,  102 users,  load average: 1.14, 1.38, 1.36",
+      "ps1": "pion@mindwm-stg1:~/work/dev/mindwm-manager$"
+    },
+    "type": "iodocument"
+  }
+}

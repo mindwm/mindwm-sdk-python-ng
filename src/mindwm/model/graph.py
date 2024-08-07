@@ -29,6 +29,7 @@ class TmuxSession(MindwmNode):
 
 class TmuxPane(MindwmNode):
     __primarylabel__: ClassVar[str] = "TmuxPane"
+    __primaryproperty__: ClassVar[str] = "title"
     title: str
 
 class IoDocument(MindwmNode):

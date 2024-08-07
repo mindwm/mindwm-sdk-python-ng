@@ -1,5 +1,7 @@
 from functools import wraps
 from fastapi import FastAPI
+from neontology import init_neontology
+from base64 import b64decode
 from mindwm.model.events import (
     IoDocument,
     IoDocumentEvent,
@@ -40,12 +42,43 @@ def ev2iodoc(e: CloudEvent) -> IoDocument:
     ev = ev2iodocev(e)
     return ev.data
 
+def iodocument_event(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(e : CloudEvent):
+        x = ev2iodoc(e)
+        uuid = e.id
+        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = e.source.split('.')
+        init_neontology()
+        value = func(
+                iodocument=x,
+                uuid=uuid,
+                username=username,
+                hostname=hostname,
+                socket_path=str(b64decode(tmux_b64)).strip(),
+                tmux_session=session,
+                tmux_pane=pane
+                )
+        return value
+
+    return wrapper
+
 def iodocument(func):
     @wraps(func)
     @app.post("/")
     async def wrapper(e : CloudEvent):
         x = ev2iodoc(e)
         value = func(x)
+        return value
+
+    return wrapper
+
+def touch_event(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(e : CloudEvent):
+        x = ev2touchev(e)
+        value = func(x, ev)
         return value
 
     return wrapper
