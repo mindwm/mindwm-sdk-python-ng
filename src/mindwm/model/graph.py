@@ -1,9 +1,14 @@
 from typing import ClassVar, Optional, List
+from datetime import date, datetime, time, timedelta
 import pandas as pd
+from pydantic import Field
 from neontology import BaseNode, BaseRelationship, init_neontology, auto_constrain
 
 class MindwmNode(BaseNode):
     atime: int = 0
+    #    atime: datetime = Field(
+    #    default_factory=datetime.now
+    #)
 
 class User(MindwmNode):
     __primarylabel__: ClassVar[str] = "User"
