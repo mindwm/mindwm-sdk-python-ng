@@ -57,24 +57,6 @@
         "type": "github"
       }
     },
-    "flake-parts_3": {
-      "inputs": {
-        "nixpkgs-lib": "nixpkgs-lib_3"
-      },
-      "locked": {
-        "lastModified": 1722555600,
-        "narHash": "sha256-XOQkdLafnb/p9ij77byFQjDf5m5QYl9b2REiVClC+x4=",
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "rev": "8471fe90ad337a8074e957b69ca4d0089218391d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "type": "github"
-      }
-    },
     "neontology-py": {
       "inputs": {
         "flake-parts": "flake-parts_2",
@@ -136,46 +118,12 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/a5d394176e64ab29c852d03346c1fc9b0b7d33eb.tar.gz"
       }
     },
-    "nixpkgs-lib_3": {
-      "locked": {
-        "lastModified": 1722555339,
-        "narHash": "sha256-uFf2QeW7eAHlYXuDktm9c25OxOyCoUOQmh5SZ9amE5Q=",
-        "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/a5d394176e64ab29c852d03346c1fc9b0b7d33eb.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/a5d394176e64ab29c852d03346c1fc9b0b7d33eb.tar.gz"
-      }
-    },
-    "parliament-py": {
-      "inputs": {
-        "flake-parts": "flake-parts_3",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1722698077,
-        "narHash": "sha256-7DeNgi7yzBUirk1rmD/MT+dl+lZfnX3RXHQ5y+pT2sI=",
-        "owner": "omgbebebe",
-        "repo": "parliament.py-nix",
-        "rev": "2fdf64c0505916ea8e2f217b3d73476d3d9b3a69",
-        "type": "github"
-      },
-      "original": {
-        "owner": "omgbebebe",
-        "repo": "parliament.py-nix",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "devshell": "devshell",
         "flake-parts": "flake-parts",
         "neontology-py": "neontology-py",
-        "nixpkgs": "nixpkgs",
-        "parliament-py": "parliament-py"
+        "nixpkgs": "nixpkgs"
       }
     }
   },

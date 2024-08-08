@@ -5,8 +5,6 @@
     #nixpkgs.url = "github:nixos/nixpkgs/24.05";
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    parliament-py.url = "github:omgbebebe/parliament.py-nix";
-    parliament-py.inputs.nixpkgs.follows = "nixpkgs";
     neontology-py.url = "github:omgbebebe/neontology.py-nix";
     neontology-py.inputs.nixpkgs.follows = "nixpkgs";
     devshell.url = "github:numtide/devshell/main";
@@ -22,7 +20,6 @@
       perSystem = { config, self', inputs', pkgs, system, ... }:
       let
         my_python = pkgs.python3.withPackages (ps: with ps; [
-          inputs.parliament-py.packages.${system}.default
           inputs.neontology-py.packages.${system}.default
           pydantic dateutil urllib3
           opentelemetry-sdk opentelemetry-exporter-otlp
@@ -33,13 +30,8 @@
         project = pkgs.callPackage ./package.nix {
           my_python = my_python;
         };
-        overlay = self: super: {
-          mindwm-sdk-python = project;
-        };
-        defaultPython = pkgs.python3;
-        finalPython = defaultPython.override { packageOverrides = overlay; };
       in { 
-        packages.default = finalPython.pkgs.mindwm-sdk-python;
+        packages.default = project;
         devshells.default = {
             env = [];
             devshell.startup.pypath = pkgs.lib.noDepEntry ''
