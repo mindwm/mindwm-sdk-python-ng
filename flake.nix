@@ -28,7 +28,8 @@
           fastapi uvicorn
         ]);
         project = pkgs.callPackage ./package.nix {
-          my_python = my_python;
+          my_python = pkgs.python3;
+          neontology = inputs.neontology-py.packages.${system}.default;
         };
       in { 
         packages.default = project;
