@@ -26,6 +26,7 @@
           neo4j
           pandas
           fastapi uvicorn
+          pyyaml
         ]);
         project = pkgs.callPackage ./package.nix {
           my_python = pkgs.python3;
