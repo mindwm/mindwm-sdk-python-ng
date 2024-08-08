@@ -14,10 +14,11 @@ python3.pkgs.buildPythonPackage {
 
   propagatedBuildInputs = [ my_python ];
 #  buildInputs = [ my_python ];
-#  dependencies = [
-#    parliament
-#    mindwm-sdk-python
-#  ];
+  dependencies = [
+    my_python
+#    pydantic
+#    pandas
+  ];
 
   pythonImportsCheck = [
     "mindwm.model"

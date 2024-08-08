@@ -30,3 +30,4 @@ def func(
     g.TmuxPaneHasIoDocument(source=pane, target=iodoc).merge()
 
     logger.warning(iodoc)
+    return iodoc
