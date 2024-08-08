@@ -2,8 +2,6 @@
 , pkgs
 , my_python
 , neontology
-#, parliament
-#, mindwm-sdk-python
 }:
 with pkgs;
 
@@ -14,7 +12,6 @@ python3.pkgs.buildPythonPackage rec {
   src = ./.;
 
   propagatedBuildInputs = [ dependencies ];
-#  buildInputs = [ my_python ];
   dependencies = with my_python.pkgs; [
     pandas
     pydantic dateutil urllib3
@@ -22,9 +19,7 @@ python3.pkgs.buildPythonPackage rec {
     neo4j
     fastapi uvicorn
     neontology
-#    my_python
-#    pydantic
-#    pandas
+    pyyaml
   ];
 
   pythonImportsCheck = [
