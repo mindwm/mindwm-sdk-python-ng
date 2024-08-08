@@ -14,6 +14,14 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+@app.get("/health/liveness")
+def liveness():
+    return "OK"
+
+@app.get("/health/readiness")
+def readiness():
+    return "OK"
+
 def ev2iodocev(e: CloudEvent) -> IoDocumentEvent:
     if e.data.type != "iodocument":
         msg = f"event.data.type should be 'iodocument' but {e.data.type} provided"
