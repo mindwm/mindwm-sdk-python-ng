@@ -29,4 +29,4 @@ def func(
     g.TmuxSessionHasTmuxPane(source=sess, target=pane).merge()
     g.TmuxPaneHasIoDocument(source=pane, target=iodoc).merge()
 
-#    logger.warning(ev.source.split('.'))
+    logger.warning(iodoc)
