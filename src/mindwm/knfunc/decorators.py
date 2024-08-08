@@ -1,6 +1,6 @@
 from functools import wraps
 from fastapi import FastAPI
-from neontology import init_neontology
+from neontology import init_neontology, auto_constrain
 from base64 import b64decode
 from mindwm.model.events import (
     IoDocument,
@@ -50,6 +50,7 @@ def iodocument_event(func):
         uuid = e.id
         [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = e.source.split('.')
         init_neontology()
+        auto_constrain()
         value = func(
                 iodocument=x,
                 uuid=uuid,
