@@ -6,7 +6,7 @@
 }:
 with pkgs;
 
-python3.pkgs.buildPythonApplication {
+python3.pkgs.buildPythonPackage {
   pname = "mindwm-knfunc";
   version = "0.1.0";
 

@@ -33,8 +33,13 @@
         project = pkgs.callPackage ./package.nix {
           my_python = my_python;
         };
+        overlay = self: super: {
+          mindwm-sdk-python = project;
+        };
+        defaultPython = pkgs.python3;
+        finalPython = defaultPython.override { packageOverrides = overlay; };
       in { 
-        packages.default = project;
+        packages.default = finalPython.pkgs.mindwm-sdk-python;
         devshells.default = {
             env = [];
             devshell.startup.pypath = pkgs.lib.noDepEntry ''
