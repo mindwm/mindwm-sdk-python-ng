@@ -25,12 +25,13 @@ class CloudEvent(BaseModel):
         Union[
             IoDocumentEvent,
             TouchEvent
-        ],
-        Field(discriminator='type')
+        ], Field(discriminator='type')
     ]
+    type: Optional[str] = None
     datacontenttype: Optional[str] = None
     dataschema: Optional[str] = None
     subject: Optional[str] = None
     time: Optional[str] = None
     data_base64: Optional[str] = None
     knativebrokerttl: Optional[str] = "255"
+    traceparent: Optional[str] = None
