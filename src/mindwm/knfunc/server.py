@@ -17,7 +17,7 @@ def readiness():
     return "OK"
 
 async def main():
-    config = uvicorn.Config("mindwm.knfunc.server:app", port=8080, log_level="info")
+    config = uvicorn.Config("mindwm.knfunc.server:app", host="0.0.0.0", port=8080, log_level="info")
     server = uvicorn.Server(config)
     await server.serve()
 

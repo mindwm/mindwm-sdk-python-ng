@@ -1,17 +1,10 @@
 from pydantic import BaseModel, Field
-from typing import Annotated, Union, Literal, Optional, List
-
-class IoDocument(BaseModel):
-    input: str
-    output: str
-    ps1: str
+from typing import Annotated, Union, Literal, Optional
+from .objects import IoDocument, Touch
 
 class IoDocumentEvent(BaseModel):
     data: IoDocument
     type: Literal['iodocument'] = 'iodocument'
-
-class Touch(BaseModel):
-    ids: List[int]
 
 class TouchEvent(BaseModel):
     data: Touch
