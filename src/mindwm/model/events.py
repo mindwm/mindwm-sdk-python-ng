@@ -28,3 +28,15 @@ class CloudEvent(BaseModel):
     data_base64: Optional[str] = None
     knativebrokerttl: Optional[str] = "255"
     traceparent: Optional[str] = None
+
+    def model_dump(self):
+        """
+        This Overrides the default model dump method to exclude None values
+        """
+        return super().model_dump(exclude_none=True)
+
+    def model_dump_json(self):
+        """
+        This Overrides the default model dump method to exclude None values
+        """
+        return super().model_dump_json(exclude_none=True, exclude_unset=True)
