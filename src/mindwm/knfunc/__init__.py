@@ -1,1 +1,1 @@
-from .decorators import iodocument, iodocument_event
+from .decorators import app, iodocument, iodocument_event
