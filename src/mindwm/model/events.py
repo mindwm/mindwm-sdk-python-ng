@@ -39,4 +39,4 @@ class CloudEvent(BaseModel):
         """
         This Overrides the default model dump method to exclude None values
         """
-        return super().model_dump_json(exclude_none=True, exclude_unset=True)
+        return super().model_dump_json(exclude_none=True)
