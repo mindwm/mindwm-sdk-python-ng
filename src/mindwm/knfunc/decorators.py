@@ -12,6 +12,7 @@ from mindwm.model.events import (
 )
 import logging
 import os
+
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'INFO'))
 logger = logging.getLogger(__name__)
 
@@ -83,9 +84,8 @@ def iodocument_event(func):
 def iodocument(func):
     @wraps(func)
     @app.post("/")
-    async def wrapper(e : CloudEvent):
-        x = ev2iodoc(e)
-        value = func(x)
+    async def wrapper(ev : IoDocumentEvent):
+        value = await func(ev.data)
         return value
 
     return wrapper
@@ -115,6 +115,15 @@ def event(func):
     @app.post("/")
     async def wrapper(e : CloudEvent):
         value = func(ev)
+        return value
+
+    return wrapper
+
+def request(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(r: Request):
+        value = await func(r)
         return value
 
     return wrapper
