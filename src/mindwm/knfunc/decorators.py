@@ -1,5 +1,6 @@
+from typing import Any
 from functools import wraps
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Body
 from neontology import init_neontology, auto_constrain
 from base64 import b64decode
 from mindwm.model.events import (
@@ -105,6 +106,24 @@ def touch(func):
     async def wrapper(e : CloudEvent):
         x = ev2touch(e)
         value = func(x)
+        return value
+
+    return wrapper
+
+def event(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(e : CloudEvent):
+        value = func(ev)
+        return value
+
+    return wrapper
+
+def request_body(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(b: Any = Body(None)):
+        value = await func(b)
         return value
 
     return wrapper
