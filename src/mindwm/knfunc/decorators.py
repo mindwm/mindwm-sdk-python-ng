@@ -102,7 +102,7 @@ def iodocument_event(func):
         b = await r.body()
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
-        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = e.source.split('.')
+        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = source.split('.')
         init_neontology()
         auto_constrain()
         value = func(
