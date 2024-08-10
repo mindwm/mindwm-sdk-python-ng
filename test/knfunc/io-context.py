@@ -1,6 +1,10 @@
+from mindwm import logging
 from mindwm.model.events import IoDocument
 import mindwm.model.graph as g
-from mindwm.knfunc.decorators import iodocument_event, app, logger
+from mindwm.knfunc.decorators import iodocument_event, app
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @iodocument_event
 def func(
@@ -11,6 +15,8 @@ def func(
         socket_path: str,
         tmux_session: str,
         tmux_pane: str):
+
+    logger.debug(f"received: {iodocument}")
 
     user = g.User(username=username).merge()
     host = g.Host(hostname=hostname).merge()

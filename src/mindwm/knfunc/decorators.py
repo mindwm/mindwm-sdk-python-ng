@@ -10,9 +10,15 @@ from mindwm.model.events import (
     CloudEvent
 )
 import logging
+import os
+logging.basicConfig(level=os.getenv('LOG_LEVEL', 'INFO'))
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+@app.get("/")
+def get_root():
+    logger.warning("GET / received")
 
 @app.get("/health/liveness")
 def liveness():
@@ -54,6 +60,7 @@ def iodocument_event(func):
     @wraps(func)
     @app.post("/")
     async def wrapper(e : CloudEvent):
+        logger.debug(f"received: {e}")
         x = ev2iodoc(e)
         uuid = e.id
         [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = e.source.split('.')
