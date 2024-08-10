@@ -87,6 +87,14 @@ def event(func):
 
     return wrapper
 
+def iodocument(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(r: Request):
+        b = await r.body()
+        res = await func(b)
+        return res
+
 def iodocument_event(func):
     @wraps(func)
     @app.post("/")
