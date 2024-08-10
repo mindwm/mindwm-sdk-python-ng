@@ -58,38 +58,6 @@ def ev2iodoc(e: CloudEvent) -> IoDocument:
     ev = ev2iodocev(e)
     return ev.data
 
-def iodocument_event(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(e : CloudEvent):
-        logger.debug(f"received: {e}")
-        x = ev2iodoc(e)
-        uuid = e.id
-        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = e.source.split('.')
-        init_neontology()
-        auto_constrain()
-        value = func(
-                iodocument=x,
-                uuid=uuid,
-                username=username,
-                hostname=hostname,
-                socket_path=str(b64decode(tmux_b64)).strip(),
-                tmux_session=session,
-                tmux_pane=pane
-                )
-        return value
-
-    return wrapper
-
-def iodocument(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(ev : IoDocumentEvent):
-        value = await func(ev.data)
-        return value
-
-    return wrapper
-
 def touch_event(func):
     @wraps(func)
     @app.post("/")
@@ -118,6 +86,27 @@ def event(func):
         return value
 
     return wrapper
+
+def iodocument_event(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(r: Request):
+        b = await r.body()
+        uuid = r.headers.get('ce-id')
+        source = r.headers.get('ce-source')
+        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = e.source.split('.')
+        init_neontology()
+        auto_constrain()
+        value = func(
+                iodocument=x,
+                uuid=uuid,
+                username=username,
+                hostname=hostname,
+                socket_path=str(b64decode(tmux_b64)).strip(),
+                tmux_session=session,
+                tmux_pane=pane
+                )
+        return value
 
 def request(func):
     @wraps(func)
