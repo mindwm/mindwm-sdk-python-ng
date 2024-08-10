@@ -1,5 +1,6 @@
+from typing import Annotated
 from functools import wraps
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, Request
 from neontology import init_neontology, auto_constrain
 from base64 import b64decode
 from mindwm.model.events import (
@@ -59,8 +60,11 @@ def ev2iodoc(e: CloudEvent) -> IoDocument:
 def iodocument_event(func):
     @wraps(func)
     @app.post("/")
-    async def wrapper(e : CloudEvent):
-        logger.debug(f"received: {e}")
+    #async def wrapper(e : CloudEvent, content_type: Annotated[str | None, Header()] = None):
+    async def wrapper(r : Request, content_type: Annotated[str | None, Header()] = None):
+        logger.info(f"header: {content_type}")
+        logger.debug(f"received: {r}")
+        e = await r.json()
         x = ev2iodoc(e)
         uuid = e.id
         [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = e.source.split('.')
