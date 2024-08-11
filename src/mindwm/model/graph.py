@@ -25,13 +25,11 @@ class Tmux(MindwmNode):
     __primarylabel__: ClassVar[str] = "Tmux"
     __primaryproperty__: ClassVar[str] = "socket_path"
     socket_path: str
-#    host_id: str # for what?
 
 class TmuxSession(MindwmNode):
     __primarylabel__: ClassVar[str] = "TmuxSession"
     __primaryproperty__: ClassVar[str] = "name"
     name: str
-#    tmux_id: int #for what?
 
 class TmuxPane(MindwmNode):
     __primarylabel__: ClassVar[str] = "TmuxPane"
