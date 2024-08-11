@@ -25,18 +25,17 @@ class Tmux(MindwmNode):
     __primarylabel__: ClassVar[str] = "Tmux"
     __primaryproperty__: ClassVar[str] = "socket_path"
     # TODO: define a proper validator
-    socket_path: str # f"{username}@{hostname}:{socket_path}"
+    socket_path: str # f"{username}@{hostname}/{socket_path}"
 
 class TmuxSession(MindwmNode):
     __primarylabel__: ClassVar[str] = "TmuxSession"
-    __primaryproperty__: ClassVar[str] = "uuid"
-    uuid: str
-    name: str
+    __primaryproperty__: ClassVar[str] = "socket_path"
+    socket_path: str # f"{username}@{hostname}/{socket_path}:{tmux_session}"
 
 class TmuxPane(MindwmNode):
     __primarylabel__: ClassVar[str] = "TmuxPane"
     __primaryproperty__: ClassVar[str] = "title"
-    title: str
+    title: str # f"{username}@{hostname}/{socket_path}:{tmux_session}%{pane}"
 
 class IoDocument(MindwmNode, IoDocument):
     __primarylabel__: ClassVar[str] = "IoDocument"
