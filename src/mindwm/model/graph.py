@@ -91,6 +91,16 @@ class UserHasParameter(BaseRelationship):
     source: User
     target: Parameter
 
+class UserHasTmux(BaseRelationship):
+    __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
+    source: User
+    target: Tmux
+
+class IoDocumentHasUser(BaseRelationship):
+    __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
+    source: IoDocument
+    target: User
+
 class HostHasParameter(BaseRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
     source: Host
