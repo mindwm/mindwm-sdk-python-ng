@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta
 import pandas as pd
 from pydantic import Field
 from neontology import BaseNode, BaseRelationship, init_neontology, auto_constrain
+from .objects import IoDocument, Touch
 
 class MindwmNode(BaseNode):
     atime: int = 0
@@ -37,13 +38,10 @@ class TmuxPane(MindwmNode):
     __primaryproperty__: ClassVar[str] = "title"
     title: str
 
-class IoDocument(MindwmNode):
+class IoDocument(MindwmNode, IoDocument):
     __primarylabel__: ClassVar[str] = "IoDocument"
     __primaryproperty__: ClassVar[str] = "uuid"
     uuid: str
-    input: str
-    output: str
-    ps1: str
 
 class Clipboard(MindwmNode):
     __primarylabel__: ClassVar[str] = "Clipboard"
