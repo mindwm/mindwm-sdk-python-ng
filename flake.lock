@@ -65,26 +65,27 @@
         ]
       },
       "locked": {
-        "lastModified": 1723029510,
-        "narHash": "sha256-7lrYXK0m1qLmxoNuqLgP8+q11cN4gvmKPayRd3USCJc=",
-        "owner": "omgbebebe",
-        "repo": "neontology.py-nix",
-        "rev": "82e2ca37e7a3ac938349a58fa704628f06e7897d",
+        "lastModified": 1723367425,
+        "narHash": "sha256-H9FtmyEZyxUIn54hFKC6ddSnqp1uIe69eK/Y9cyXuCg=",
+        "owner": "mindwm",
+        "repo": "neontology",
+        "rev": "e7cbbd6dea067cf196a5fb0db3edbe7fbb64317a",
         "type": "github"
       },
       "original": {
-        "owner": "omgbebebe",
-        "repo": "neontology.py-nix",
+        "owner": "mindwm",
+        "ref": "dev",
+        "repo": "neontology",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1722957468,
-        "narHash": "sha256-SQ0TCC4aklOhN/OzcztrKqDLY8SjpIZcyvTulzhDXs0=",
+        "lastModified": 1723221148,
+        "narHash": "sha256-7pjpeQlZUNQ4eeVntytU3jkw9dFK3k1Htgk2iuXjaD8=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "2a13929e1f191b3690dd2f2db13098b04adb9043",
+        "rev": "154bcb95ad51bc257c2ce4043a725de6ca700ef6",
         "type": "github"
       },
       "original": {

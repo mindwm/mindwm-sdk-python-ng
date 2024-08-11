@@ -5,7 +5,7 @@
     #nixpkgs.url = "github:nixos/nixpkgs/24.05";
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    neontology-py.url = "github:omgbebebe/neontology.py-nix";
+    neontology-py.url = "github:mindwm/neontology/?ref=dev";
     neontology-py.inputs.nixpkgs.follows = "nixpkgs";
     devshell.url = "github:numtide/devshell/main";
     devshell.inputs.nixpkgs.follows = "nixpkgs";
