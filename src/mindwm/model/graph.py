@@ -86,20 +86,20 @@ class HostHasClipboard(BaseRelationship):
     source: Host
     target: Clipboard
 
-class UserHasParameter(BaseRelationship):
-    __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
-    source: User
-    target: Parameter
-
 class UserHasTmux(BaseRelationship):
-    __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
+    __relationshiptype__: ClassVar[str] = "HAS_TMUX"
     source: User
     target: Tmux
 
 class IoDocumentHasUser(BaseRelationship):
-    __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
+    __relationshiptype__: ClassVar[str] = "HAS_USER"
     source: IoDocument
     target: User
+
+class UserHasParameter(BaseRelationship):
+    __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
+    source: User
+    target: Parameter
 
 class HostHasParameter(BaseRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
