@@ -1,5 +1,6 @@
+from mindwm import logger
 from mindwm.model.events import Touch
-from mindwm.knfunc.decorators import app, logger, touch
+from mindwm.knfunc.decorators import app, touch
 
 @touch
 def func(touch: Touch):

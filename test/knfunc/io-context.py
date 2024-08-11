@@ -1,12 +1,12 @@
 from mindwm import logging
 from mindwm.model.events import IoDocument
 import mindwm.model.graph as g
-from mindwm.knfunc.decorators import iodocument_event, app
+from mindwm.knfunc.decorators import iodocument_with_source, app
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-@iodocument_event
+@iodocument_with_source
 def func(
         iodocument: IoDocument,
         uuid: str,
@@ -35,5 +35,5 @@ def func(
     g.TmuxSessionHasTmuxPane(source=sess, target=pane).merge()
     g.TmuxPaneHasIoDocument(source=pane, target=iodoc).merge()
 
-    logger.warning(iodoc)
+    logger.info(iodoc)
     return iodoc

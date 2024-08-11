@@ -1,6 +1,8 @@
+from mindwm import logger
 from mindwm.model.events import IoDocument
-from mindwm.knfunc.decorators import iodocument, app, logger
+from mindwm.knfunc.decorators import iodocument, app
 
 @iodocument
-def func(iodocument: IoDocument):
-    logger.warning(iodocument.input)
+async def func(iodocument: IoDocument):
+    logger.info(iodocument.model_dump())
+    return {"result": "Success"}

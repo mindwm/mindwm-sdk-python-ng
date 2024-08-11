@@ -12,6 +12,7 @@ from mindwm.model.events import (
 )
 import logging
 import os
+
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'INFO'))
 logger = logging.getLogger(__name__)
 
@@ -29,46 +30,35 @@ def liveness():
 def readiness():
     return "OK"
 
-def ev2iodocev(e: CloudEvent) -> IoDocumentEvent:
-    if e.data.type != "iodocument":
-        msg = f"event.data.type should be 'iodocument' but {e.data.type} provided"
-        raise Exception(msg)
-
-    if isinstance(e.data, IoDocumentEvent):
-        return e.data
-    else:
-        raise Exception(f"wrong document type")
-
-def ev2touchev(e: CloudEvent) -> TouchEvent:
-    if e.data.type != "touch":
-        msg = f"event.data.type should be 'touch' but {e.data.type} provided"
-        raise Exception(msg)
-
-    if isinstance(e.data, TouchEvent):
-        return e.data
-    else:
-        raise Exception(f"wrong document type")
-
-def ev2touch(e: CloudEvent) -> Touch:
-    ev = ev2touchev(e)
-    return ev.data
-
-def ev2iodoc(e: CloudEvent) -> IoDocument:
-    ev = ev2iodocev(e)
-    return ev.data
-
-def iodocument_event(func):
+def touch(func):
     @wraps(func)
     @app.post("/")
-    async def wrapper(e : CloudEvent):
-        logger.debug(f"received: {e}")
-        x = ev2iodoc(e)
-        uuid = e.id
-        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = e.source.split('.')
+    async def wrapper(touch_ev: TouchEvent):
+        value = func(touch_ev.data)
+        return value
+
+    return wrapper
+
+def iodocument(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(iodoc_ev: IoDocumentEvent):
+        res = await func(iodoc_ev.data)
+        return res
+
+def iodocument_with_source(func):
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(r: Request):
+        b = await r.body()
+        uuid = r.headers.get('ce-id')
+        source = r.headers.get('ce-source')
+        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = source.split('.')
         init_neontology()
         auto_constrain()
+        iodoc_ev = IoDocumentEvent.model_validate_json(b)
         value = func(
-                iodocument=x,
+                iodocument=iodoc_ev.data,
                 uuid=uuid,
                 username=username,
                 hostname=hostname,
@@ -77,53 +67,3 @@ def iodocument_event(func):
                 tmux_pane=pane
                 )
         return value
-
-    return wrapper
-
-def iodocument(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(e : CloudEvent):
-        x = ev2iodoc(e)
-        value = func(x)
-        return value
-
-    return wrapper
-
-def touch_event(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(e : CloudEvent):
-        x = ev2touchev(e)
-        value = func(x, ev)
-        return value
-
-    return wrapper
-
-def touch(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(e : CloudEvent):
-        x = ev2touch(e)
-        value = func(x)
-        return value
-
-    return wrapper
-
-def event(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(e : CloudEvent):
-        value = func(ev)
-        return value
-
-    return wrapper
-
-def request_body(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(b: Any = Body(None)):
-        value = await func(b)
-        return value
-
-    return wrapper
