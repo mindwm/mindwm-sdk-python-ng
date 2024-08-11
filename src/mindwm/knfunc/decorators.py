@@ -105,8 +105,9 @@ def iodocument_event(func):
         [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = source.split('.')
         init_neontology()
         auto_constrain()
+        iodoc_ev = IoDocumentEvent.model_validate_json(b)
         value = func(
-                iodocument=IoDocument.model_validate_json(b),
+                iodocument=iodoc_ev.data,
                 uuid=uuid,
                 username=username,
                 hostname=hostname,
