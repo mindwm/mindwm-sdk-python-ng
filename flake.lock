@@ -65,16 +65,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1723367425,
-        "narHash": "sha256-H9FtmyEZyxUIn54hFKC6ddSnqp1uIe69eK/Y9cyXuCg=",
+        "lastModified": 1723373720,
+        "narHash": "sha256-DfYC1XUH7Xh1pbsufgCDnXTo2Xp+pHv3P6x8e8NJxIc=",
         "owner": "mindwm",
         "repo": "neontology",
-        "rev": "e7cbbd6dea067cf196a5fb0db3edbe7fbb64317a",
+        "rev": "396b43ee750693c70b6d7b5a4bf8301aeb43291c",
         "type": "github"
       },
       "original": {
         "owner": "mindwm",
-        "ref": "dev",
         "repo": "neontology",
         "type": "github"
       }
