@@ -106,7 +106,7 @@ def iodocument_event(func):
         init_neontology()
         auto_constrain()
         value = func(
-                iodocument=x,
+                iodocument=IoDocument.model_validate_json(b),
                 uuid=uuid,
                 username=username,
                 hostname=hostname,
