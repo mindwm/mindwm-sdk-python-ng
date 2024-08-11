@@ -24,11 +24,13 @@ class Host(MindwmNode):
 class Tmux(MindwmNode):
     __primarylabel__: ClassVar[str] = "Tmux"
     __primaryproperty__: ClassVar[str] = "socket_path"
-    socket_path: str
+    # TODO: define a proper validator
+    socket_path: str # f"{username}@{hostname}:{socket_path}"
 
 class TmuxSession(MindwmNode):
     __primarylabel__: ClassVar[str] = "TmuxSession"
-    __primaryproperty__: ClassVar[str] = "name"
+    __primaryproperty__: ClassVar[str] = "uuid"
+    uuid: str
     name: str
 
 class TmuxPane(MindwmNode):
