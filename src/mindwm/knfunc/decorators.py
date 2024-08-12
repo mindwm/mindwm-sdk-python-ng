@@ -1,6 +1,6 @@
 from typing import Any
 from functools import wraps
-from fastapi import FastAPI, Request, Body, status
+from fastapi import FastAPI, Request, Body, Response, status
 from neontology import init_neontology, auto_constrain
 from base64 import b64decode
 from mindwm.model.events import (
