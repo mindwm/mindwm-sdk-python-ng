@@ -1,6 +1,6 @@
 from typing import Any
 from functools import wraps
-from fastapi import FastAPI, Request, Body
+from fastapi import FastAPI, Request, Body, status
 from neontology import init_neontology, auto_constrain
 from base64 import b64decode
 from mindwm.model.events import (
@@ -66,4 +66,8 @@ def iodocument_with_source(func):
                 tmux_session=session,
                 tmux_pane=pane
                 )
+        if not value:
+            return Response(status_code=status.HTTP_200_OK)
+        else:
+            return value
         return value
