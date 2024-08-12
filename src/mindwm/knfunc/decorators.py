@@ -66,6 +66,7 @@ def iodocument_with_source(func):
                 tmux_session=session,
                 tmux_pane=pane
                 )
+        logger.debug(f"return value: {value}")
         if not value:
             return Response(status_code=status.HTTP_200_OK)
         else:
