@@ -20,6 +20,7 @@ python3.pkgs.buildPythonPackage rec {
     fastapi uvicorn
     neontology
     pyyaml
+    openai
   ];
 
   pythonImportsCheck = [

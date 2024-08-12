@@ -27,6 +27,7 @@
           pandas
           fastapi uvicorn
           pyyaml
+	  openai
         ]);
         project = pkgs.callPackage ./package.nix {
           my_python = pkgs.python3;
