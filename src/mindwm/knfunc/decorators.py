@@ -57,7 +57,7 @@ def iodocument_with_source(func):
         init_neontology()
         auto_constrain()
         iodoc_ev = IoDocumentEvent.model_validate_json(b)
-        value = func(
+        value = await func(
                 iodocument=iodoc_ev.data,
                 uuid=uuid,
                 username=username,
