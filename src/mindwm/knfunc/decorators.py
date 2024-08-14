@@ -34,23 +34,28 @@ def touch(func):
     @app.post("/")
     async def wrapper(touch_ev: TouchEvent):
         value = func(touch_ev.data)
+        if not value:
+            return Response(status_code=status.HTTP_200_OK)
+        else:
+            return value
         return value
-
-    return wrapper
 
 def iodocument(func):
     @wraps(func)
     @app.post("/")
     async def wrapper(iodoc_ev: IoDocumentEvent):
+        value = await func(iodoc_ev.data)
         logger.warning("@iodocument is deprecated. Use @iodoc instead")
-        res = await func(iodoc_ev.data)
-        return res
+        if not value:
+            return Response(status_code=status.HTTP_200_OK)
+        else:
+            return value
+        return value
 
 def iodocument_with_source(func):
     @wraps(func)
     @app.post("/")
     async def wrapper(r: Request):
-        logger.warning("@iodocument_with_source is deprecated. Use @iodoc instead")
         b = await r.body()
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
@@ -68,6 +73,7 @@ def iodocument_with_source(func):
                 tmux_pane=pane
                 )
         logger.debug(f"return value: {value}")
+        logger.warning("@iodocument_with_source is deprecated. Use @iodoc instead")
         if not value:
             return Response(status_code=status.HTTP_200_OK)
         else:
