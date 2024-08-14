@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Annotated, Union, Literal, Optional
-from .objects import IoDocument, Touch
+from .objects import IoDocument, Touch, LLMAnswer
 
 class IoDocumentEvent(BaseModel):
     data: IoDocument
@@ -10,6 +10,10 @@ class TouchEvent(BaseModel):
     data: Touch
     type: Literal['touch'] = 'touch'
 
+class LLMAnswerEvent(BaseModel):
+    data: LLMAnswer
+    type: Literal['llmansver'] = 'llmanswer'
+
 class CloudEvent(BaseModel):
     id: str
     source: str
@@ -17,7 +21,8 @@ class CloudEvent(BaseModel):
     data: Annotated[
         Union[
             IoDocumentEvent,
-            TouchEvent
+            TouchEvent,
+            LLMAnswerEvent
         ], Field(discriminator='type')
     ]
     type: Optional[str] = None
@@ -40,3 +45,6 @@ class CloudEvent(BaseModel):
         This Overrides the default model dump method to exclude None values
         """
         return super().model_dump_json(exclude_none=True)
+
+
+

@@ -9,3 +9,6 @@ class IoDocument(BaseModel):
 class Touch(BaseModel):
     ids: List[int]
 
+class LLMAnswer(BaseModel):
+    codesnippet : str
+    description: str
