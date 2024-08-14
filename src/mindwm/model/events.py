@@ -12,7 +12,7 @@ class TouchEvent(BaseModel):
 
 class LLMAnswerEvent(BaseModel):
     data: LLMAnswer
-    type: Literal['llmansver'] = 'llmanswer'
+    type: Literal['llmanswer'] = 'llmanswer'
 
 class CloudEvent(BaseModel):
     id: str
