@@ -1,1 +1,1 @@
-from .decorators import app, iodocument, iodocument_with_source, touch
+from .decorators import app, iodoc, iodocument, iodocument_with_source, touch
