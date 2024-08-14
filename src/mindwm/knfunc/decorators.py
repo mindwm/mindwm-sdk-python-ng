@@ -90,7 +90,12 @@ def iodoc(func):
         b = await r.body()
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
-        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = source.split('.')
+        [_, username, hostname, _, tmux_b64, _some_id, tmux_session, tmux_pane, _] = source.split('.')
+        tmux_socket_path = str(b64decode(tmux_b64)).strip()
+        tmux_socket_path = tmux_socket_path.strip("b'").strip('/')
+        socket_path = f"{username}@{hostname}/{tmux_socket_path}"
+        session_id = f"{socket_path}:{tmux_session}"
+        pane_title = f"{session_id}%{tmux_pane}"
         if 'iodocument' in kwargs:
             iodoc_ev = IoDocumentEvent.model_validate_json(b)
             kwargs['iodocument'] = iodoc_ev.data
@@ -102,14 +107,16 @@ def iodoc(func):
             kwargs['hostname'] = hostname
         if 'tmux_b64' in kwargs:
             kwargs['tmux_b64'] = tmux_b64
-        if 'session_id' in kwargs:
-            kwargs['session_id'] = some_id
         if 'tmux_session' in kwargs:
-            kwargs['tmux_session'] = session
+            kwargs['tmux_session'] = tmux_session
+        if 'tmux_socket_path' in kwargs:
+            kwargs['tmux_socket_path'] = tmux_socket_path
         if 'socket_path' in kwargs:
-            kwargs['socket_path'] = str(b64decode(tmux_b64)).strip()
-        if 'tmux_pane' in kwargs:
-            kwargs['tmux_pane'] = str(pane)
+            kwargs['socket_path'] = socket_path
+        if 'session_id' in kwargs:
+            kwargs['session_id'] = session_id
+        if 'pane_title' in kwargs:
+            kwargs['pane_title'] = pane_title
         if 'graph' in kwargs:
             if init_neontology():
                 auto_constrain()
