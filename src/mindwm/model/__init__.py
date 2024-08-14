@@ -1,2 +1,2 @@
-from .objects import IoDocument, Touch
-from .events import CloudEvent, IoDocumentEvent, TouchEvent
+from .objects import IoDocument, Touch, LLMAnswer
+from .events import CloudEvent, IoDocumentEvent, TouchEvent, LLMAnswerEvent
