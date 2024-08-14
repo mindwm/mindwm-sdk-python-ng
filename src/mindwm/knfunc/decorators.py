@@ -108,8 +108,8 @@ def iodoc(func):
             kwargs['tmux_session'] = session
         if 'socket_path' in kwargs:
             kwargs['socket_path'] = str(b64decode(tmux_b64)).strip()
-        if 'pane' in kwargs:
-            kwargs['pane'] = str(pane)
+        if 'tmux_pane' in kwargs:
+            kwargs['tmux_pane'] = str(pane)
         if 'graph' in kwargs:
             if init_neontology():
                 auto_constrain()
