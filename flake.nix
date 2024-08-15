@@ -2,8 +2,8 @@
   description = "A MindWM SDK for Python";
 
   inputs = {
-    #nixpkgs.url = "github:nixos/nixpkgs/24.05";
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/24.05";
+    #nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     neontology-py.url = "github:mindwm/neontology";
     neontology-py.inputs.nixpkgs.follows = "nixpkgs";
@@ -25,7 +25,8 @@
           opentelemetry-sdk opentelemetry-exporter-otlp
           neo4j
           pandas
-          fastapi uvicorn
+          fastapi
+          uvicorn
           pyyaml
 	  openai
         ]);
