@@ -1,3 +1,5 @@
+import os
+from uuid import uuid4
 from typing import Any
 from functools import wraps
 import inspect
@@ -5,12 +7,15 @@ from fastapi import FastAPI, Request, Body, Response, status
 from neontology import init_neontology, auto_constrain
 from base64 import b64decode
 import mindwm.model.graph as graphModel
+import mindwm
 from mindwm.model.events import (
     IoDocument,
     IoDocumentEvent,
     Touch,
     TouchEvent,
-    CloudEvent
+    LLMAnswer,
+    LLMAnswerEvent,
+    CloudEvent,
 )
 from mindwm import logging
 
@@ -128,5 +133,15 @@ def iodoc(func):
         if not value:
             return Response(status_code=status.HTTP_200_OK)
         else:
-            return value
+            context_name = os.environ.get('POD_NAMESPACE', 'NO_CONTEXT')
+            obj_ev = CloudEvent.make_obj_event(value)
+            ce = CloudEvent(
+              id=str(uuid4()),
+              source=f"org.mindwm.{context_name}.knfunc.{func.__name__}",
+              subject=f"{source}.feedback",
+              type=obj_ev.type,
+              data=obj_ev,
+              traceparent=r.headers.get('ce-traceparent')
+            ).model_dump_json()
+            return ce
         return value

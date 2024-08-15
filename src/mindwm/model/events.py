@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Annotated, Union, Literal, Optional
+from typing import Annotated, Union, Literal, Optional, Type, TypeVar
 from .objects import IoDocument, Touch, LLMAnswer
+
 
 class IoDocumentEvent(BaseModel):
     data: IoDocument
@@ -13,6 +14,20 @@ class TouchEvent(BaseModel):
 class LLMAnswerEvent(BaseModel):
     data: LLMAnswer
     type: Literal['llmanswer'] = 'llmanswer'
+
+Obj = TypeVar(
+    "Obj",
+    IoDocument,
+    Touch,
+    LLMAnswer
+    )
+
+ObjEvent = TypeVar(
+    "ObjEvent",
+    IoDocumentEvent,
+    TouchEvent,
+    LLMAnswerEvent
+    )
 
 class CloudEvent(BaseModel):
     id: str
@@ -46,5 +61,15 @@ class CloudEvent(BaseModel):
         """
         return super().model_dump_json(exclude_none=True)
 
-
+    @classmethod
+    def make_obj_event(cls, obj: Type[Obj]) -> Type[ObjEvent]:
+        match obj:
+            case Touch():
+                return TouchEvent(data=obj)
+            case IoDocument():
+                return IoDocumentEvent(data=obj)
+            case LLMAnswer():
+                return LLMAnswerEvent(data=obj)
+            case _:
+                return None
 
