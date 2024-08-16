@@ -115,7 +115,7 @@ def iodoc(func):
             #headers['content-type'] = 'application/cloudevents+json'
             logger.debug(f"response: {headers}\n{body}")
             response.headers.update(headers)
-            return JSONResponse(content=data, headers=headers)
+            return JSONResponse(content=body.decode('utf-8'), headers=headers)
         return value
 
 def llm_answer(func):
@@ -153,5 +153,5 @@ def llm_answer(func):
             #headers['content-type'] = 'application/cloudevents+json'
             logger.debug(f"response: {headers}\n{body}")
             response.headers.update(headers)
-            return JSONResponse(content=data, headers=headers)
+            return JSONResponse(content=body.decode('utf-8'), headers=headers)
         return value
