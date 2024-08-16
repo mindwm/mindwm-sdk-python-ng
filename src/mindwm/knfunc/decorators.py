@@ -4,6 +4,7 @@ from typing import Any
 from functools import wraps
 import inspect
 from fastapi import FastAPI, Request, Body, Response, status
+from fastapi.responses import JSONResponse
 from neontology import init_neontology, auto_constrain
 from base64 import b64decode
 import mindwm.model.graph as graphModel
@@ -137,16 +138,16 @@ def iodoc(func):
         else:
             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
             obj_ev = CloudEvent.make_obj_event(value)
-            ce = CloudEvent(
-              id=str(uuid4()),
-              source=f"org.mindwm.{context_name}.knfunc.{func.__name__}",
-              subject=f"{source}.feedback",
-              type=obj_ev.type,
-              data=obj_ev,
-              traceparent=r.headers.get('ce-traceparent')
-            ).model_dump_json()
-            logger.debug(f"return cloudevent: {ce}")
-            return ce
+            attributes = {
+                "id": uuid4().hex,
+                "source": f"org.mindwm.{context_name}.knfunc.{func.__name__}",
+                "subject": f"{source}.feedback",
+                "type": obj_ev.type,
+                "traceparent": r.headers.get('ce-traceparent')
+            }
+            data = obj_ev.model_dump()
+            logger.debug(f"response: {attributes}\n{data}")
+            return JSONResponse(content=data, headers=attributes)
         return value
 
 def llm_answer(func):
@@ -169,14 +170,14 @@ def llm_answer(func):
         else:
             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
             obj_ev = CloudEvent.make_obj_event(value)
-            ce = CloudEvent(
-              id=str(uuid4()),
-              source=f"org.mindwm.{context_name}.knfunc.{func.__name__}",
-              subject=f"{source}.feedback",
-              type=obj_ev.type,
-              data=obj_ev,
-              traceparent=r.headers.get('ce-traceparent')
-            ).model_dump_json()
-            logger.debug(f"return cloudevent: {ce}")
-            return ce
+            attributes = {
+                "id": uuid4().hex,
+                "source": f"org.mindwm.{context_name}.knfunc.{func.__name__}",
+                "subject": f"{source}.feedback",
+                "type": obj_ev.type,
+                "traceparent": r.headers.get('ce-traceparent')
+            }
+            data = obj_ev.model_dump()
+            logger.debug(f"response: {attributes}\n{data}")
+            return JSONResponse(content=data, headers=attributes)
         return value
