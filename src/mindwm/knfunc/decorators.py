@@ -145,6 +145,7 @@ def iodoc(func):
               data=obj_ev,
               traceparent=r.headers.get('ce-traceparent')
             ).model_dump_json()
+            logger.debug(f"return cloudevent: {ce}")
             return ce
         return value
 
@@ -176,5 +177,6 @@ def llm_answer(func):
               data=obj_ev,
               traceparent=r.headers.get('ce-traceparent')
             ).model_dump_json()
+            logger.debug(f"return cloudevent: {ce}")
             return ce
         return value
