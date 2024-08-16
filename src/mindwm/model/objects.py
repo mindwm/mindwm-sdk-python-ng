@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List
 
 class IoDocument(BaseModel):
+    uuid: str
     input: str
     output: str
     ps1: str
