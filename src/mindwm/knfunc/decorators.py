@@ -130,7 +130,7 @@ def llm_answer(func):
         logger.debug(f"request headers: {r.headers}\nbody: {b}")
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
-        subject = r.headers.get('subject')
+        subject = r.headers.get('ce-subject')
         if 'answer' in kwargs:
             answer_ev = LLMAnswerEvent.model_validate_json(b)
             kwargs['answer'] = answer_ev.data
