@@ -106,7 +106,7 @@ def iodoc(func):
                 "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
                 #"subject": f"{source}.feedback",
                 # TODO: fix the subject to variant from above when we implement new naming convention
-                "subject": f"mindwm.pion.mindwm-stg1.knfunc.feedback",
+                "subject": f"mindwm.{username}.{hostname}.knfunc.feedback",
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
@@ -144,7 +144,7 @@ def llm_answer(func):
                 "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
                 #"subject": f"{source}.feedback",
                 # TODO: fix the subject to variant from above when we implement new naming convention
-                "subject": f"mindwm.pion.mindwm-stg1.knfunc.feedback",
+                "subject": f"mindwm.{username}.{hostname}.knfunc.feedback",
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
