@@ -57,6 +57,7 @@ def iodoc(func):
         logger.info(f"params: {xx}")
         kwargs = dict(func_sig.parameters)
         b = await r.body()
+        logger.debug(f"request headers: {r.headers}\nbody: {b}")
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
         [_, username, hostname, _, tmux_b64, _some_id, tmux_session, tmux_pane, _] = source.split('.')
@@ -126,6 +127,7 @@ def llm_answer(func):
         xx = [p.annotation for p in func_sig.parameters.values()]
         kwargs = dict(func_sig.parameters)
         b = await r.body()
+        logger.debug(f"request headers: {r.headers}\nbody: {b}")
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
         subject = r.headers.get('subject')

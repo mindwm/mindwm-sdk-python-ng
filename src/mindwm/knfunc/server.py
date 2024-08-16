@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import asyncio
 import uvicorn
+import os
 
 app = FastAPI()
 
@@ -17,7 +18,8 @@ def readiness():
     return "OK"
 
 async def main():
-    config = uvicorn.Config("mindwm.knfunc.server:app", host="0.0.0.0", port=8080, log_level="info")
+    log_level = os.environ('LOG_LEVEL', 'INFO')
+    config = uvicorn.Config("mindwm.knfunc.server:app", host="0.0.0.0", port=8080, log_level=log_level)
     server = uvicorn.Server(config)
     await server.serve()
 
