@@ -112,9 +112,10 @@ def iodoc(func):
             data = obj_ev.model_dump()
             event = CE(attributes, data)
             headers, body = to_structured(event)
+            #headers['content-type'] = 'application/cloudevents+json'
             logger.debug(f"response: {headers}\n{body}")
             response.headers.update(headers)
-            return body
+            return JSONResponse(content=data, headers=headers)
         return value
 
 def llm_answer(func):
@@ -149,7 +150,8 @@ def llm_answer(func):
             data = obj_ev.model_dump()
             event = CE(attributes, data)
             headers, body = to_structured(event)
+            #headers['content-type'] = 'application/cloudevents+json'
             logger.debug(f"response: {headers}\n{body}")
             response.headers.update(headers)
-            return body
+            return JSONResponse(content=data, headers=headers)
         return value
