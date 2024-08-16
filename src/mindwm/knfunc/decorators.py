@@ -103,7 +103,9 @@ def iodoc(func):
             attributes = {
                 "id": uuid4().hex,
                 "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
-                "subject": f"{source}.feedback",
+                #"subject": f"{source}.feedback",
+                # TODO: fix the subject to variant from above when we implement new naming convention
+                "subject": f"mindwm.pion.mindwm-stg1.knfunc.feedback",
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
@@ -138,7 +140,9 @@ def llm_answer(func):
             attributes = {
                 "id": uuid4().hex,
                 "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
-                "subject": f"{source}.feedback",
+                #"subject": f"{source}.feedback",
+                # TODO: fix the subject to variant from above when we implement new naming convention
+                "subject": f"mindwm.pion.mindwm-stg1.knfunc.feedback",
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
