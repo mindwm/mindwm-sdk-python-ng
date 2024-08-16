@@ -102,7 +102,7 @@ def iodoc(func):
             obj_ev = CloudEvent.make_obj_event(value)
             attributes = {
                 "id": uuid4().hex,
-                "source": f"org.mindwm.{context_name}.knfunc.{func.__name__}",
+                "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
                 "subject": f"{source}.feedback",
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
@@ -137,7 +137,7 @@ def llm_answer(func):
             obj_ev = CloudEvent.make_obj_event(value)
             attributes = {
                 "id": uuid4().hex,
-                "source": f"org.mindwm.{context_name}.knfunc.{func.__name__}",
+                "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
                 "subject": f"{source}.feedback",
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
