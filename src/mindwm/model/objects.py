@@ -29,10 +29,8 @@ class Action(BaseModel):
 class ShowMessage(Action):
     title: str
     message: str
-    type: Literal['showmessage'] = 'showmessage'
 
 class TypeText(Action):
     title: str
     description: str
     snippet: str
-    type: Literal['typetext'] = 'typetext'

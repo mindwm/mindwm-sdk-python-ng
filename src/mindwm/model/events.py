@@ -21,7 +21,7 @@ class ShowMessageEvent(BaseModel):
 
 class TypeTextEvent(BaseModel):
     data: TypeText
-    type: Literal['showmessage'] = 'showmessage'
+    type: Literal['typetextevent'] = 'typetextevent'
 
 Obj = TypeVar(
     "Obj",
