@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Annotated, Union, Literal, Optional, Type, TypeVar
-from .objects import IoDocument, Touch, LLMAnswer
+from .objects import IoDocument, Touch, LLMAnswer, ShowMessage, TypeText
 
 
 class IoDocumentEvent(BaseModel):
@@ -15,18 +15,30 @@ class LLMAnswerEvent(BaseModel):
     data: LLMAnswer
     type: Literal['llmanswer'] = 'llmanswer'
 
+class ShowMessageEvent(BaseModel):
+    data: ShowMessage
+    type: Literal['showmessage'] = 'showmessage'
+
+class TypeTextEvent(BaseModel):
+    data: TypeText
+    type: Literal['showmessage'] = 'showmessage'
+
 Obj = TypeVar(
     "Obj",
     IoDocument,
     Touch,
-    LLMAnswer
+    LLMAnswer,
+    ShowMessage,
+    TypeText
     )
 
 ObjEvent = TypeVar(
     "ObjEvent",
     IoDocumentEvent,
     TouchEvent,
-    LLMAnswerEvent
+    LLMAnswerEvent,
+    ShowMessageEvent,
+    TypeTextEvent
     )
 
 class CloudEvent(BaseModel):
@@ -37,7 +49,9 @@ class CloudEvent(BaseModel):
         Union[
             IoDocumentEvent,
             TouchEvent,
-            LLMAnswerEvent
+            LLMAnswerEvent,
+            ShowMessage,
+            TypeText
         ], Field(discriminator='type')
     ]
     type: Optional[str] = None
@@ -70,6 +84,10 @@ class CloudEvent(BaseModel):
                 return IoDocumentEvent(data=obj)
             case LLMAnswer():
                 return LLMAnswerEvent(data=obj)
+            case ShowMessage():
+                return ShowMessageEvent(data=obj)
+            case TypeText():
+                return TypeTextEvent(data=obj)
             case _:
-                return None
-
+                msg = f"unknown object type: {obj}"
+                raise TypeError(msg)
