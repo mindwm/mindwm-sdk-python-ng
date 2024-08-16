@@ -114,6 +114,8 @@ def iodoc(func):
             kwargs['tmux_b64'] = tmux_b64
         if 'tmux_session' in kwargs:
             kwargs['tmux_session'] = tmux_session
+        if 'tmux_pane' in kwargs:
+            kwargs['tmux_pane'] = tmux_pane
         if 'tmux_socket_path' in kwargs:
             kwargs['tmux_socket_path'] = tmux_socket_path
         if 'socket_path' in kwargs:
