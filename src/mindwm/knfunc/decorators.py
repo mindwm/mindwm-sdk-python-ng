@@ -147,7 +147,7 @@ def llm_answer(func):
                 "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
                 #"subject": f"{source}.feedback",
                 # TODO: fix the subject to variant from above when we implement new naming convention
-                "subject": subject,
+                "subject": f"{subject}.actions",
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
