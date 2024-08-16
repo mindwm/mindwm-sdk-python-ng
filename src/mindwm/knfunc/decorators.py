@@ -21,6 +21,7 @@ from mindwm.model.events import (
     CloudEvent,
 )
 from mindwm import logging
+import json
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
@@ -115,7 +116,7 @@ def iodoc(func):
             #headers['content-type'] = 'application/cloudevents+json'
             logger.debug(f"response: {headers}\n{body}")
             response.headers.update(headers)
-            return JSONResponse(content=body.decode('utf-8'), headers=headers)
+            return JSONResponse(content=json.loads(body), headers=headers)
         return value
 
 def llm_answer(func):
@@ -153,5 +154,5 @@ def llm_answer(func):
             #headers['content-type'] = 'application/cloudevents+json'
             logger.debug(f"response: {headers}\n{body}")
             response.headers.update(headers)
-            return JSONResponse(content=body.decode('utf-8'), headers=headers)
+            return JSONResponse(content=json.loads(body), headers=headers)
         return value
