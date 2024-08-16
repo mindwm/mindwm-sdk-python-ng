@@ -62,6 +62,8 @@ class CloudEvent(BaseModel):
     data_base64: Optional[str] = None
     knativebrokerttl: Optional[str] = "255"
     traceparent: Optional[str] = None
+    tracestate: Optional[str] = None
+    knativearrivaltime: Optional[str] = None
 
     def model_dump(self):
         """
