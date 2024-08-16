@@ -128,6 +128,7 @@ def llm_answer(func):
         b = await r.body()
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
+        subject = r.headers.get('subject')
         if 'answer' in kwargs:
             answer_ev = LLMAnswerEvent.model_validate_json(b)
             kwargs['answer'] = answer_ev.data
@@ -144,7 +145,7 @@ def llm_answer(func):
                 "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
                 #"subject": f"{source}.feedback",
                 # TODO: fix the subject to variant from above when we implement new naming convention
-                "subject": f"mindwm.{username}.{hostname}.knfunc.feedback",
+                "subject": subject,
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
