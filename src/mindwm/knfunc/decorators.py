@@ -1,3 +1,5 @@
+from cloudevents.conversion import to_structured
+from cloudevents.http import CloudEvent as CE
 import os
 from uuid import uuid4
 from typing import Any
@@ -46,49 +48,9 @@ def touch(func):
             return value
         return value
 
-def iodocument(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(iodoc_ev: IoDocumentEvent):
-        value = await func(iodoc_ev.data)
-        logger.warning("@iodocument is deprecated. Use @iodoc instead")
-        if not value:
-            return Response(status_code=status.HTTP_200_OK)
-        else:
-            return value
-        return value
-
-def iodocument_with_source(func):
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(r: Request):
-        b = await r.body()
-        uuid = r.headers.get('ce-id')
-        source = r.headers.get('ce-source')
-        [_, username, hostname, _, tmux_b64, some_id, session, pane, _] = source.split('.')
-        init_neontology()
-        auto_constrain()
-        iodoc_ev = IoDocumentEvent.model_validate_json(b)
-        value = await func(
-                iodocument=iodoc_ev.data,
-                uuid=uuid,
-                username=username,
-                hostname=hostname,
-                socket_path=str(b64decode(tmux_b64)).strip(),
-                tmux_session=session,
-                tmux_pane=pane
-                )
-        logger.debug(f"return value: {value}")
-        logger.warning("@iodocument_with_source is deprecated. Use @iodoc instead")
-        if not value:
-            return Response(status_code=status.HTTP_200_OK)
-        else:
-            return value
-        return value
-
 def iodoc(func):
     @app.post("/")
-    async def wrapper(r: Request):
+    async def wrapper(r: Request, response: Response):
         func_sig = inspect.signature(func)
         xx = [p.annotation for p in func_sig.parameters.values()]
         logger.info(f"params: {xx}")
@@ -146,13 +108,16 @@ def iodoc(func):
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
             data = obj_ev.model_dump()
-            logger.debug(f"response: {attributes}\n{data}")
-            return JSONResponse(content=data, headers=attributes)
+            event = CE(attributes, data)
+            headers, body = to_structured(event)
+            logger.debug(f"response: {headers}\n{body}")
+            response.headers.update(headers)
+            return body
         return value
 
 def llm_answer(func):
     @app.post("/")
-    async def wrapper(r: Request):
+    async def wrapper(r: Request, response: Response):
         func_sig = inspect.signature(func)
         xx = [p.annotation for p in func_sig.parameters.values()]
         kwargs = dict(func_sig.parameters)
@@ -178,6 +143,9 @@ def llm_answer(func):
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
             data = obj_ev.model_dump()
-            logger.debug(f"response: {attributes}\n{data}")
-            return JSONResponse(content=data, headers=attributes)
+            event = CE(attributes, data)
+            headers, body = to_structured(event)
+            logger.debug(f"response: {headers}\n{body}")
+            response.headers.update(headers)
+            return body
         return value

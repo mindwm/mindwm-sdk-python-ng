@@ -29,6 +29,7 @@
           uvicorn
           pyyaml
 	  openai
+	  cloudevents deprecation
         ]);
         project = pkgs.callPackage ./package.nix {
           my_python = pkgs.python3;
