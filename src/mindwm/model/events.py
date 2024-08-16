@@ -50,8 +50,8 @@ class CloudEvent(BaseModel):
             IoDocumentEvent,
             TouchEvent,
             LLMAnswerEvent,
-            ShowMessage,
-            TypeText
+            ShowMessageEvent,
+            TypeTextEvent
         ], Field(discriminator='type')
     ]
     type: Optional[str] = None
