@@ -135,7 +135,38 @@ def iodoc(func):
         if not value:
             return Response(status_code=status.HTTP_200_OK)
         else:
-            context_name = os.environ.get('POD_NAMESPACE', 'NO_CONTEXT')
+            context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
+            obj_ev = CloudEvent.make_obj_event(value)
+            ce = CloudEvent(
+              id=str(uuid4()),
+              source=f"org.mindwm.{context_name}.knfunc.{func.__name__}",
+              subject=f"{source}.feedback",
+              type=obj_ev.type,
+              data=obj_ev,
+              traceparent=r.headers.get('ce-traceparent')
+            ).model_dump_json()
+            return ce
+        return value
+
+def llm_answer(func):
+    @app.post("/")
+    async def wrapper(r: Request):
+        func_sig = inspect.signature(func)
+        xx = [p.annotation for p in func_sig.parameters.values()]
+        kwargs = dict(func_sig.parameters)
+        b = await r.body()
+        uuid = r.headers.get('ce-id')
+        source = r.headers.get('ce-source')
+        if 'answer' in kwargs:
+            answer_ev = LLMAnswerEvent.model_validate_json(b)
+            kwargs['answer'] = answer_ev.data
+
+        value = await func(**kwargs)
+        logger.debug(f"return value: {value}")
+        if not value:
+            return Response(status_code=status.HTTP_200_OK)
+        else:
+            context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
             obj_ev = CloudEvent.make_obj_event(value)
             ce = CloudEvent(
               id=str(uuid4()),
