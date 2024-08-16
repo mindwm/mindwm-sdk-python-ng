@@ -143,7 +143,7 @@ def iodoc(func):
                 "source": f"org.mindwm.{context_name}.knfunc.{func.__name__}",
                 "subject": f"{source}.feedback",
                 "type": obj_ev.type,
-                "traceparent": r.headers.get('ce-traceparent')
+                #"ce-traceparent": r.headers.get('ce-traceparent')
             }
             data = obj_ev.model_dump()
             logger.debug(f"response: {attributes}\n{data}")
@@ -175,7 +175,7 @@ def llm_answer(func):
                 "source": f"org.mindwm.{context_name}.knfunc.{func.__name__}",
                 "subject": f"{source}.feedback",
                 "type": obj_ev.type,
-                "traceparent": r.headers.get('ce-traceparent')
+                #"ce-traceparent": r.headers.get('ce-traceparent')
             }
             data = obj_ev.model_dump()
             logger.debug(f"response: {attributes}\n{data}")
