@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 
 class IoDocument(BaseModel):
@@ -10,5 +10,6 @@ class Touch(BaseModel):
     ids: List[int]
 
 class LLMAnswer(BaseModel):
+    iodoc_uuid: str = Field(description = 'An original IoDocument uuid')
     codesnippet : str
     description: str
