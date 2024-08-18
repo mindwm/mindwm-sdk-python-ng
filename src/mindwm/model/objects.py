@@ -48,18 +48,6 @@ class Action(MindwmObject):
         "non-empty list of targets to execute the action on. I.e. identifier of tmux pane"
     )
 
-    def model_dump(self):
-        """
-        This Overrides the default model dump method to exclude None values
-        """
-        return super().model_dump(exclude_none=True)
-
-    def model_dump_json(self):
-        """
-        This Overrides the default model dump method to exclude None values
-        """
-        return super().model_dump_json(exclude_none=True)
-
 
 class ShowMessage(Action):
     title: str
