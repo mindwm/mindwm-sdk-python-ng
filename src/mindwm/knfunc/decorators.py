@@ -211,10 +211,11 @@ def llm_answer(func):
         async def inner(**kwargs):
             value = await func(**kwargs)
             logger.debug(f"return value: {value}")
+            logger.info(f"inner")
             carrier = None
             if 'traceparent' in r.headers.keys():
                 carrier = r.headers.get('traceparent')
-                iodoc_obj.traceparent = carrier
+                value.traceparent = carrier
                 value.traceparent = carrier
 
             if 'tracestate' in r.headers.keys():
@@ -241,7 +242,8 @@ def llm_answer(func):
                 logger.debug(f"response: {headers}\n{body}")
                 response.headers.update(headers)
                 return JSONResponse(content=json.loads(body), headers=headers)
-            res = await inner(**kwargs)
-            return res
 
-        return wrapper
+        res = await inner(**kwargs)
+        return res
+
+    return wrapper
