@@ -61,8 +61,8 @@ class CloudEvent(BaseModel):
     time: Optional[str] = None
     data_base64: Optional[str] = None
     knativebrokerttl: Optional[str] = "255"
-    traceparent: Optional[str] = None
-    tracestate: Optional[str] = None
+    traceparent: Optional[str] = Annotated[str, Field(min_length=1, default=None)] = Field(description="Contains a version, trace ID, span ID, and trace options")
+    tracestate: Optional[str] = Annotated[str, Field(min_length=1, default=None)] = Field(description="a comma-delimited list of key-value pairs")
     knativearrivaltime: Optional[str] = None
 
     def model_dump(self):
