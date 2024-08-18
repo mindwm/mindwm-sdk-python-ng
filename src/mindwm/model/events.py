@@ -1,6 +1,8 @@
+from typing import Annotated, Literal, Optional, Type, TypeVar, Union
+
 from pydantic import BaseModel, Field
-from typing import Annotated, Union, Literal, Optional, Type, TypeVar
-from .objects import IoDocument, Touch, LLMAnswer, ShowMessage, TypeText
+
+from .objects import IoDocument, LLMAnswer, ShowMessage, Touch, TypeText
 
 
 class IoDocumentEvent(BaseModel):

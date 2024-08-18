@@ -1,27 +1,20 @@
+import inspect
+import json
+import os
+from base64 import b64decode
+from functools import wraps
+from uuid import uuid4
+
 from cloudevents.conversion import to_structured
 from cloudevents.http import CloudEvent as CE
-import os
-from uuid import uuid4
-from typing import Any
-from functools import wraps
-import inspect
-from fastapi import FastAPI, Request, Body, Response, status
+from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
-from neontology import init_neontology, auto_constrain
-from base64 import b64decode
+from neontology import auto_constrain, init_neontology
+
 import mindwm.model.graph as graphModel
-import mindwm
-from mindwm.model.events import (
-    IoDocument,
-    IoDocumentEvent,
-    Touch,
-    TouchEvent,
-    LLMAnswer,
-    LLMAnswerEvent,
-    CloudEvent,
-)
 from mindwm import logging
-import json
+from mindwm.model.events import (CloudEvent, IoDocumentEvent, LLMAnswerEvent,
+                                 TouchEvent)
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
