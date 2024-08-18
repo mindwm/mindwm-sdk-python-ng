@@ -5,16 +5,15 @@ from base64 import b64decode
 from functools import wraps
 from uuid import uuid4
 
+import mindwm.model.graph as graphModel
 from cloudevents.conversion import to_structured
 from cloudevents.http import CloudEvent as CE
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
-from neontology import auto_constrain, init_neontology
-
-import mindwm.model.graph as graphModel
 from mindwm import logging
 from mindwm.model.events import (CloudEvent, IoDocumentEvent, LLMAnswerEvent,
                                  TouchEvent)
+from neontology import auto_constrain, init_neontology
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
@@ -53,11 +52,21 @@ def iodoc(func):
     @app.post("/")
     async def wrapper(r: Request, response: Response):
         func_sig = inspect.signature(func)
-        xx = [p.annotation for p in func_sig.parameters.values()]
-        logger.info(f"params: {xx}")
         kwargs = dict(func_sig.parameters)
         b = await r.body()
-        logger.debug(f"request headers: {r.headers}\nbody: {b}")
+        iodoc_ev = IoDocumentEvent.model_validate_json(b)
+        iodoc_obj = iodoc_ev.data
+        if 'traceparent' in r.headers.keys():
+            [a, traceId, spanId, b] = r._headers.get('traceparent').split('-')
+            newSpanId = os.urandom(8).hex()
+            iodoc_obj.traceparent = f"{a}-{traceId}-{newSpanId}-{b}"
+
+        if 'tracestate' in r.headers.keys():
+            iodoc_obj.tracestate = r.headers.get('tracestate')
+
+        logger.info(f"bebebe")
+        logger.info(f"request headers: {r.headers}\nbody: {b}")
+        logger.debug(f"with injected traces: {iodoc_obj}")
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
         [
@@ -70,8 +79,7 @@ def iodoc(func):
         session_id = f"{socket_path}:{tmux_session}"
         pane_title = f"{session_id}%{tmux_pane}"
         if 'iodocument' in kwargs:
-            iodoc_ev = IoDocumentEvent.model_validate_json(b)
-            kwargs['iodocument'] = iodoc_ev.data
+            kwargs['iodocument'] = iodoc_obj
         if 'uuid' in kwargs:
             kwargs['uuid'] = r.headers.get('ce-id')
         if 'username' in kwargs:
@@ -100,10 +108,12 @@ def iodoc(func):
 
         value = await func(**kwargs)
         logger.debug(f"return value: {value}")
+
         if not value:
             return Response(status_code=status.HTTP_200_OK)
         else:
             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
+
             obj_ev = CloudEvent.make_obj_event(value)
             attributes = {
                 "id": uuid4().hex,
@@ -114,6 +124,7 @@ def iodoc(func):
                 "type": obj_ev.type,
                 #"ce-traceparent": r.headers.get('ce-traceparent')
             }
+
             data = obj_ev.model_dump()
             event = CE(attributes, data)
             headers, body = to_structured(event)
@@ -142,6 +153,12 @@ def llm_answer(func):
 
         value = await func(**kwargs)
         logger.debug(f"return value: {value}")
+        if 'traceparent' in r.headers.keys():
+            value.traceparent = r.headers.get('traceparent')
+
+        if 'tracestate' in r.headers.keys():
+            value.tracestate = r.headers.get('tracestate')
+        logger.debug(f"with injected traces: {value}")
         if not value:
             return Response(status_code=status.HTTP_200_OK)
         else:

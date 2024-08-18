@@ -1,10 +1,15 @@
-from typing import List
+from typing import List, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
 
-class IoDocument(BaseModel):
+class MindwmObject(BaseModel):
+    traceparent: Optional[str] = None
+    tracestate: Optional[str] = None
+
+
+class IoDocument(MindwmObject):
     uuid: str = Field(description="uniq action id",
                       default_factory=lambda: uuid4().hex)
     input: str
@@ -12,17 +17,17 @@ class IoDocument(BaseModel):
     ps1: str
 
 
-class Touch(BaseModel):
+class Touch(MindwmObject):
     ids: List[int]
 
 
-class LLMAnswer(BaseModel):
+class LLMAnswer(MindwmObject):
     iodoc_uuid: str = Field(description='An original IoDocument uuid')
     codesnippet: str
     description: str
 
 
-class Action(BaseModel):
+class Action(MindwmObject):
     uuid: str = Field(description="uniq action id",
                       default_factory=lambda: uuid4().hex)
     parent_uuid: str = Field(description="uuid of a parent document")
