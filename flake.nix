@@ -54,7 +54,10 @@
             ];
             packages = [
               my_python
-            ] ++ (with pkgs; [
+            ] ++ (with pkgs.python3.pkgs; [
+                pylint yapf isort autoflake
+                python-lsp-server
+                importmagic epc
             ]);
         };
       };
