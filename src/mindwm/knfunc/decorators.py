@@ -244,4 +244,4 @@ def llm_answer(func):
             res = await inner(**kwargs)
             return res
 
-        return value
+        return wrapper
