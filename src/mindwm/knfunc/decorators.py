@@ -26,19 +26,24 @@ import json
 logger = logging.getLogger(__name__)
 app = FastAPI()
 
+
 @app.get("/")
 def get_root():
     logger.warning("GET / received")
+
 
 @app.get("/health/liveness")
 def liveness():
     return "OK"
 
+
 @app.get("/health/readiness")
 def readiness():
     return "OK"
 
+
 def touch(func):
+
     @wraps(func)
     @app.post("/")
     async def wrapper(touch_ev: TouchEvent):
@@ -49,7 +54,9 @@ def touch(func):
             return value
         return value
 
+
 def iodoc(func):
+
     @app.post("/")
     async def wrapper(r: Request, response: Response):
         func_sig = inspect.signature(func)
@@ -60,7 +67,10 @@ def iodoc(func):
         logger.debug(f"request headers: {r.headers}\nbody: {b}")
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
-        [_, username, hostname, _, tmux_b64, _some_id, tmux_session, tmux_pane, _] = source.split('.')
+        [
+            _, username, hostname, _, tmux_b64, _some_id, tmux_session,
+            tmux_pane, _
+        ] = source.split('.')
         tmux_socket_path = str(b64decode(tmux_b64)).strip()
         tmux_socket_path = tmux_socket_path.strip("b'").strip('/')
         socket_path = f"{username}@{hostname}/{tmux_socket_path}"
@@ -120,7 +130,9 @@ def iodoc(func):
             return JSONResponse(content=json.loads(body), headers=headers)
         return value
 
+
 def llm_answer(func):
+
     @app.post("/")
     async def wrapper(r: Request, response: Response):
         func_sig = inspect.signature(func)

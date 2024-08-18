@@ -7,53 +7,40 @@ class IoDocumentEvent(BaseModel):
     data: IoDocument
     type: Literal['iodocument'] = 'iodocument'
 
+
 class TouchEvent(BaseModel):
     data: Touch
     type: Literal['touch'] = 'touch'
+
 
 class LLMAnswerEvent(BaseModel):
     data: LLMAnswer
     type: Literal['llmanswer'] = 'llmanswer'
 
+
 class ShowMessageEvent(BaseModel):
     data: ShowMessage
     type: Literal['showmessage'] = 'showmessage'
+
 
 class TypeTextEvent(BaseModel):
     data: TypeText
     type: Literal['typetextevent'] = 'typetextevent'
 
-Obj = TypeVar(
-    "Obj",
-    IoDocument,
-    Touch,
-    LLMAnswer,
-    ShowMessage,
-    TypeText
-    )
 
-ObjEvent = TypeVar(
-    "ObjEvent",
-    IoDocumentEvent,
-    TouchEvent,
-    LLMAnswerEvent,
-    ShowMessageEvent,
-    TypeTextEvent
-    )
+Obj = TypeVar("Obj", IoDocument, Touch, LLMAnswer, ShowMessage, TypeText)
+
+ObjEvent = TypeVar("ObjEvent", IoDocumentEvent, TouchEvent, LLMAnswerEvent,
+                   ShowMessageEvent, TypeTextEvent)
+
 
 class CloudEvent(BaseModel):
     id: str
     source: str
     specversion: str = "1.0"
-    data: Annotated[
-        Union[
-            IoDocumentEvent,
-            TouchEvent,
-            LLMAnswerEvent,
-            ShowMessageEvent,
-            TypeTextEvent
-        ], Field(discriminator='type')
-    ]
+    data: Annotated[Union[IoDocumentEvent, TouchEvent, LLMAnswerEvent,
+                          ShowMessageEvent, TypeTextEvent],
+                    Field(discriminator='type')]
     type: Optional[str] = None
     datacontenttype: Optional[str] = None
     dataschema: Optional[str] = None
@@ -61,8 +48,11 @@ class CloudEvent(BaseModel):
     time: Optional[str] = None
     data_base64: Optional[str] = None
     knativebrokerttl: Optional[str] = "255"
-    traceparent: Optional[str] = Annotated[str, Field(min_length=1, default=None)] = Field(description="Contains a version, trace ID, span ID, and trace options")
-    tracestate: Optional[str] = Annotated[str, Field(min_length=1, default=None)] = Field(description="a comma-delimited list of key-value pairs")
+    traceparent: Annotated[str, Field(min_length=1, default=None)] = Field(
+        description="Contains a version, trace ID, span ID, and trace options")
+    tracestate: Optional[Annotated[
+        str, Field(min_length=1, default=None)]] = Field(
+            description="a comma-delimited list of key-value pairs")
     knativearrivaltime: Optional[str] = None
 
     def model_dump(self):
