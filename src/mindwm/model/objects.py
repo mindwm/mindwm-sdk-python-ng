@@ -8,18 +8,6 @@ class MindwmObject(BaseModel):
     traceparent: Optional[str] = None
     tracestate: Optional[str] = None
 
-    def model_dump(self):
-        """
-        This Overrides the default model dump method to exclude None values
-        """
-        return super().model_dump(exclude_none=True)
-
-    def model_dump_json(self):
-        """
-        This Overrides the default model dump method to exclude None values
-        """
-        return super().model_dump_json(exclude_none=True)
-
 
 class IoDocument(MindwmObject):
     uuid: str = Field(description="uniq action id",
