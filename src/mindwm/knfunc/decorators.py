@@ -42,6 +42,7 @@ def with_trace(carrier: dict = None):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             service_name = func.__name__
+            logger.debug(f"service_name: {service_name}")
             resource = Resource(attributes={SERVICE_NAME: service_name})
             span_processor = BatchSpanProcessor(OTLPSpanGrpcExporter())
             trace_provider = TracerProvider(
