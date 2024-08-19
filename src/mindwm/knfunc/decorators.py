@@ -30,33 +30,29 @@ from opentelemetry.sdk.trace.export import (BatchSpanProcessor,
 from opentelemetry.trace.propagation.tracecontext import \
     TraceContextTextMapPropagator
 
+span_processor = BatchSpanProcessor(OTLPSpanGrpcExporter())
+trace_provider = TracerProvider(active_span_processor=span_processor)
+trace.set_tracer_provider(trace_provider)
+
 logging.basicConfig(level=os.environ.get('LOG_LEVEL', 'INFO'))
 logger = logging.getLogger(__name__)
 app = FastAPI()
 
 
-def with_trace(carrier: dict = None):
+def with_trace(carrier: dict = {}):
 
     def decorator(func: Callable):
 
         @wraps(func)
         async def wrapper(*args, **kwargs):
             service_name = func.__name__
-            logger.debug(f"service_name: {service_name}")
-            resource = Resource(attributes={SERVICE_NAME: service_name})
-            span_processor = BatchSpanProcessor(OTLPSpanGrpcExporter())
-            trace_provider = TracerProvider(
-                resource=resource, active_span_processor=span_processor)
-            trace.set_tracer_provider(trace_provider)
             tracer = trace.get_tracer(service_name)
-            ctx = None
-            logger.debug(f"carrier: {carrier}")
-            if carrier:
-                ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
 
+            ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
             logger.debug(f"ctx: {ctx}")
-            with tracer.start_as_current_span(service_name,
-                                              context=ctx) as span:
+            with tracer.start_as_current_span(service_name) as span:
+                if 'trace_context' in kwargs.keys():
+                    kwargs['trace_context'] = span.context
                 res = await func(*args, **kwargs)
                 return res
 
@@ -160,7 +156,11 @@ def iodoc(func):
             logger.debug(f"return value: {value}")
 
             if not value:
-                return Response(status_code=status.HTTP_200_OK)
+                headers = {}
+                if carrier:
+                    headers = {"traceparent": carrier}
+                return Response(status_code=status.HTTP_200_OK,
+                                headers=headers)
             else:
                 context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
 
