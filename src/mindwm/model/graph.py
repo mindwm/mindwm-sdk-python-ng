@@ -179,3 +179,12 @@ class KafkaCdc(BaseModel):
     meta: KafkaCdcMeta
     payload: KafkaCdcPayload
     schema: KafkaCdcSchema
+
+    def get_object_before(self):
+        return self.payload.before.properties
+
+    def get_object_after(self):
+        return self.payload.after.properties
+
+    def get_object(self):
+        return self.get_object_after()
