@@ -7,6 +7,8 @@ from functools import partial
 from time import sleep
 
 import nats
+from opentelemetry.trace.propagation.tracecontext import \
+    TraceContextTextMapPropagator
 from pydantic import BaseModel
 
 from mindwm import logging
@@ -47,24 +49,44 @@ class NatsInterface:
         await self.nc.subscribe(subj, cb=handler)
         logger.info(f"Subscribed to NATS subject: {subj}")
 
+    @with_trace()
+    #async def publish(self, subj, payload, trace_context):
     async def publish(self, subj, payload):
-        headers = {}
-        logger.debug(f"send message to {subj}: {payload}")
+        carrier = {}
+        TraceContextTextMapPropagator().inject(carrier)
+        logger.debug(f"publish carrier: {carrier}")
+        headers = carrier
+        [_, traceId, spanId, _] = headers['traceparent'].split('-')
+        if 'traceparent' in headers.keys():
+            #logger.debug("copy traceparent as ce-traceparent")
+            #headers['ce-traceparent'] = headers['traceparent']
+            #headers['X-B3-Traceid'] = traceId
+            #headers['X-B3-Spanid'] = spanId
+            #headers['X-B3-Sampled'] = '1'
+            payload.traceparent = headers['traceparent']
+
+        logger.debug(f"send message to {subj}: {headers} {payload}")
         await self.nc.publish(subj,
                               bytes(payload.model_dump_json(),
                                     encoding='utf-8'),
                               headers=headers)
 
+    @with_trace()
     async def message_handler(self, subj, callback, msg):
         logger.debug(f"received: {subj}: {msg}")
         data = json.loads(msg.data.decode())
         if 'message' in data.keys():
             message = data['message']
-        else:
-            message = data
+            if message['traceparent']:
+                carrier = message['traceparent']
+                ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
+                res = None
+                with tracer.start_as_current_span('message_handler',
+                                                  context=ctx) as span:
+                    if callback:
+                        res = await callback(message)
 
-        if callback:
-            await callback(message)
+                return res
 
 
 _nats = NatsInterface()

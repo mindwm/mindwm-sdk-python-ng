@@ -51,6 +51,8 @@ def with_trace(carrier: dict = {}):
             ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
             logger.debug(f"ctx: {ctx}")
             with tracer.start_as_current_span(service_name) as span:
+                span.set_attribute("omg", "bebebe")
+                span.set_attribute("foo", "bar")
                 if 'trace_context' in kwargs.keys():
                     kwargs['trace_context'] = span.context
                 res = await func(*args, **kwargs)
@@ -220,6 +222,7 @@ def llm_answer(func):
 
             if 'tracestate' in r.headers.keys():
                 value.tracestate = r.headers.get('tracestate')
+
             logger.debug(f"with injected traces: {value}")
             if not value:
                 return Response(status_code=status.HTTP_200_OK)

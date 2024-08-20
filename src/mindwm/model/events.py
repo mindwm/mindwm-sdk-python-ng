@@ -5,27 +5,42 @@ from pydantic import BaseModel, Field
 from .objects import IoDocument, LLMAnswer, ShowMessage, Touch, TypeText
 
 
-class IoDocumentEvent(BaseModel):
+class BaseEvent(BaseModel):
+
+    def model_dump(self):
+        """
+        This Overrides the default model dump method to exclude None values
+        """
+        return super().model_dump(exclude_none=True)
+
+    def model_dump_json(self):
+        """
+        This Overrides the default model dump method to exclude None values
+        """
+        return super().model_dump_json(exclude_none=True)
+
+
+class IoDocumentEvent(BaseEvent):
     data: IoDocument
     type: Literal['iodocument'] = 'iodocument'
 
 
-class TouchEvent(BaseModel):
+class TouchEvent(BaseEvent):
     data: Touch
     type: Literal['touch'] = 'touch'
 
 
-class LLMAnswerEvent(BaseModel):
+class LLMAnswerEvent(BaseEvent):
     data: LLMAnswer
     type: Literal['llmanswer'] = 'llmanswer'
 
 
-class ShowMessageEvent(BaseModel):
+class ShowMessageEvent(BaseEvent):
     data: ShowMessage
     type: Literal['showmessage'] = 'showmessage'
 
 
-class TypeTextEvent(BaseModel):
+class TypeTextEvent(BaseEvent):
     data: TypeText
     type: Literal['typetextevent'] = 'typetextevent'
 
@@ -36,7 +51,7 @@ ObjEvent = TypeVar("ObjEvent", IoDocumentEvent, TouchEvent, LLMAnswerEvent,
                    ShowMessageEvent, TypeTextEvent)
 
 
-class CloudEvent(BaseModel):
+class CloudEvent(BaseEvent):
     id: str
     source: str
     specversion: str = "1.0"
@@ -61,18 +76,6 @@ class CloudEvent(BaseModel):
         Field(min_length=1,
               description="a comma-delimited list of key-value pairs")]] = None
     knativearrivaltime: Optional[str] = None
-
-    def model_dump(self):
-        """
-        This Overrides the default model dump method to exclude None values
-        """
-        return super().model_dump(exclude_none=True)
-
-    def model_dump_json(self):
-        """
-        This Overrides the default model dump method to exclude None values
-        """
-        return super().model_dump_json(exclude_none=True)
 
     @classmethod
     def make_obj_event(cls, obj: Type[Obj]) -> Type[ObjEvent]:
