@@ -8,13 +8,13 @@ class MindwmObject(BaseModel):
     traceparent: Optional[str] = None
     tracestate: Optional[str] = None
 
-    def model_dump(self):
+    def model_dump(self, **kwargs):
         """
         This Overrides the default model dump method to exclude None values
         """
         return super().model_dump(exclude_none=True)
 
-    def model_dump_json(self):
+    def model_dump_json(self, **kwargs):
         """
         This Overrides the default model dump method to exclude None values
         """
