@@ -1,6 +1,7 @@
-from typing import ClassVar
+from typing import ClassVar, Dict, List, TypeVar, Union
 
-from neontology import (BaseNode, BaseRelationship)
+from neontology import BaseNode, BaseRelationship
+from pydantic import BaseModel
 
 from .objects import IoDocument
 
@@ -141,3 +142,40 @@ class TmuxPaneHasParameter(BaseRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
     source: TmuxPane
     target: Parameter
+
+
+# kafka-source cdc events
+class KafkaCdcMeta(BaseModel):
+    timestamp: int
+    username: str
+    txId: int
+    txEventId: int
+    txEventsCount: int
+    operation: str
+    source: Dict[str, str]
+
+
+Prop = TypeVar("Prop", User, Host)
+
+
+class KafkaCdcPayloadData(BaseModel):
+    properties: Prop
+    labels: List[str]
+
+
+class KafkaCdcPayload(BaseModel):
+    id: int
+    type: str
+    before: KafkaCdcPayloadData
+    after: KafkaCdcPayloadData
+
+
+class KafkaCdcSchema(BaseModel):
+    properties: Dict[str, str]
+    constraints: List[str]
+
+
+class KafkaCdc(BaseModel):
+    meta: KafkaCdcMeta
+    payload: KafkaCdcPayload
+    schema: KafkaCdcSchema
