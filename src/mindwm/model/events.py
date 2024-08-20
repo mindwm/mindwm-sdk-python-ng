@@ -2,6 +2,7 @@ from typing import Annotated, Literal, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel, Field
 
+from .graph import KafkaCdc
 from .objects import IoDocument, LLMAnswer, ShowMessage, Touch, TypeText
 
 
@@ -45,10 +46,16 @@ class TypeTextEvent(BaseEvent):
     type: Literal['typetextevent'] = 'typetextevent'
 
 
-Obj = TypeVar("Obj", IoDocument, Touch, LLMAnswer, ShowMessage, TypeText)
+class KafkaCdcEvent(BaseEvent):
+    data: KafkaCdc
+    type: Literal['kafkacdcevent'] = 'kafkacdcevent'
+
+
+Obj = TypeVar("Obj", IoDocument, Touch, LLMAnswer, ShowMessage, TypeText,
+              KafkaCdc)
 
 ObjEvent = TypeVar("ObjEvent", IoDocumentEvent, TouchEvent, LLMAnswerEvent,
-                   ShowMessageEvent, TypeTextEvent)
+                   ShowMessageEvent, TypeTextEvent, KafkaCdcEvent)
 
 
 class CloudEvent(BaseEvent):
@@ -56,7 +63,7 @@ class CloudEvent(BaseEvent):
     source: str
     specversion: str = "1.0"
     data: Annotated[Union[IoDocumentEvent, TouchEvent, LLMAnswerEvent,
-                          ShowMessageEvent, TypeTextEvent],
+                          ShowMessageEvent, TypeTextEvent, KafkaCdcEvent],
                     Field(discriminator='type')]
     type: Optional[str] = None
     datacontenttype: Optional[str] = None
@@ -76,6 +83,10 @@ class CloudEvent(BaseEvent):
         Field(min_length=1,
               description="a comma-delimited list of key-value pairs")]] = None
     knativearrivaltime: Optional[str] = None
+    key: Optional[str] = None
+    knativekafkaoffset: Optional[int] = None
+    knativekafkapartition: Optional[int] = None
+    partitionkey: Optional[str] = None
 
     @classmethod
     def make_obj_event(cls, obj: Type[Obj]) -> Type[ObjEvent]:
@@ -90,6 +101,8 @@ class CloudEvent(BaseEvent):
                 return ShowMessageEvent(data=obj)
             case TypeText():
                 return TypeTextEvent(data=obj)
+            case KafkaCdc():
+                return KafkaCdcEvent(data=obj)
             case _:
                 msg = f"unknown object type: {obj}"
                 raise TypeError(msg)

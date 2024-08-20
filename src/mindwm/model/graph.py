@@ -1,13 +1,18 @@
-from typing import ClassVar, Dict, List, TypeVar, Union
+from datetime import datetime
+from typing import (Annotated, Any, ClassVar, Dict, List, Literal, Optional,
+                    TypeVar, Union)
 
 from neontology import BaseNode, BaseRelationship
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .objects import IoDocument
 
 
 class MindwmNode(BaseNode):
-    atime: int = 0
+    atime: Optional[int] = 0
+    created: Optional[datetime] = None
+    merged: Optional[datetime] = None
+    traceparent: Optional[str] = None
     #    atime: datetime = Field(
     #    default_factory=datetime.now
     #)
@@ -66,79 +71,85 @@ class Parameter(MindwmNode):
 
 
 # Relations
-class UserHasHost(BaseRelationship):
+class MindwmRelationship(BaseRelationship):
+    traceparent: Optional[str] = None
+    created: Optional[datetime] = None
+    merged: Optional[datetime] = None
+
+
+class UserHasHost(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_HOST"
     source: User
     target: Host
 
 
-class HostHasTmux(BaseRelationship):
+class HostHasTmux(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_TMUX"
     source: Host
     target: Tmux
 
 
-class TmuxHasTmuxSession(BaseRelationship):
+class TmuxHasTmuxSession(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_TMUX_SESSION"
     source: Tmux
     target: TmuxSession
 
 
-class TmuxSessionHasTmuxPane(BaseRelationship):
+class TmuxSessionHasTmuxPane(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_TMUX_PANE"
     source: TmuxSession
     target: TmuxPane
 
 
-class TmuxPaneHasIoDocument(BaseRelationship):
+class TmuxPaneHasIoDocument(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_IO_DOCUMENT"
     source: TmuxPane
     target: IoDocument
 
 
-class HostHasClipboard(BaseRelationship):
+class HostHasClipboard(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_CLIPBOARD"
     source: Host
     target: Clipboard
 
 
-class UserHasTmux(BaseRelationship):
+class UserHasTmux(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_TMUX"
     source: User
     target: Tmux
 
 
-class IoDocumentHasUser(BaseRelationship):
+class IoDocumentHasUser(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_USER"
     source: IoDocument
     target: User
 
 
-class UserHasParameter(BaseRelationship):
+class UserHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
     source: User
     target: Parameter
 
 
-class HostHasParameter(BaseRelationship):
+class HostHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
     source: Host
     target: Parameter
 
 
-class TmuxHasParameter(BaseRelationship):
+class TmuxHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
     source: Tmux
     target: Parameter
 
 
-class TmuxSessionHasParameter(BaseRelationship):
+class TmuxSessionHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
     source: TmuxSession
     target: Parameter
 
 
-class TmuxPaneHasParameter(BaseRelationship):
+class TmuxPaneHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
     source: TmuxPane
     target: Parameter
@@ -155,19 +166,42 @@ class KafkaCdcMeta(BaseModel):
     source: Dict[str, str]
 
 
-Prop = TypeVar("Prop", User, Host)
+Prop = TypeVar("Prop", User, Host, Tmux, TmuxSession, TmuxPane, IoDocument,
+               Clipboard, Parameter)
 
 
-class KafkaCdcPayloadData(BaseModel):
+class KafkaCdcRelNode(BaseModel):
+    id: str
+    labels: List[str]
+    ids: Dict[str, str]
+
+
+class KafkaCdcRelProp(BaseModel):
+    # FIX: more pricise parametrization if needed
+    properties: Any
+
+
+class KafkaCdcRelation(BaseModel):
+    id: int
+    start: KafkaCdcRelNode
+    end: KafkaCdcRelNode
+    before: Optional[KafkaCdcRelProp] = None
+    after: Optional[KafkaCdcRelProp] = None
+    label: str
+    type: Literal['relationship'] = 'relationship'
+    traceparent: Optional[str] = None
+
+
+class KafkaCdcNodeData(BaseModel):
     properties: Prop
     labels: List[str]
 
 
-class KafkaCdcPayload(BaseModel):
+class KafkaCdcNode(BaseModel):
     id: int
-    type: str
-    before: KafkaCdcPayloadData
-    after: KafkaCdcPayloadData
+    type: Literal['node'] = 'node'
+    before: Optional[KafkaCdcNodeData] = None
+    after: Optional[KafkaCdcNodeData] = None
 
 
 class KafkaCdcSchema(BaseModel):
@@ -177,7 +211,8 @@ class KafkaCdcSchema(BaseModel):
 
 class KafkaCdc(BaseModel):
     meta: KafkaCdcMeta
-    payload: KafkaCdcPayload
+    payload: Annotated[Union[KafkaCdcNode, KafkaCdcRelation],
+                       Field(discriminator='type')]
     schema: KafkaCdcSchema
 
     def get_object_before(self):
@@ -187,4 +222,7 @@ class KafkaCdc(BaseModel):
         return self.payload.after.properties
 
     def get_object(self):
-        return self.get_object_after()
+        if self.payload.meta.operation != 'deleted':
+            return self.get_object_after()
+        else:
+            return self.get_object_before()

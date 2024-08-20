@@ -12,8 +12,9 @@ from cloudevents.http import CloudEvent as CE
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
 from mindwm import logging
-from mindwm.model.events import (CloudEvent, IoDocumentEvent, LLMAnswerEvent,
-                                 TouchEvent)
+from mindwm.model.events import (CloudEvent, IoDocumentEvent, KafkaCdcEvent,
+                                 LLMAnswerEvent, TouchEvent)
+from mindwm.model.graph import KafkaCdc
 from neontology import auto_constrain, init_neontology
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
@@ -245,6 +246,86 @@ def llm_answer(func):
                 logger.debug(f"response: {headers}\n{body}")
                 response.headers.update(headers)
                 return JSONResponse(content=json.loads(body), headers=headers)
+
+        res = await inner(**kwargs)
+        return res
+
+    return wrapper
+
+
+def kafka_cdc(func):
+
+    @app.post("/")
+    async def wrapper(r: Request, response: Response):
+        func_sig = inspect.signature(func)
+        xx = [p.annotation for p in func_sig.parameters.values()]
+        kwargs = dict(func_sig.parameters)
+        b = await r.body()
+        logger.debug(f"headers: {r.headers}")
+        logger.debug(f"body: {b}")
+        cdc_obj = KafkaCdc.model_validate_json(b)
+        logger.info(f"cdc_obj: {cdc_obj}")
+        if 'traceparent' in r.headers.keys():
+            carrier = r.headers.get('traceparent')
+
+        if 'obj' in kwargs:
+            kwargs['obj'] = cdc_obj
+
+        match cdc_obj.payload.type:
+            case 'relationship':
+                carrier = cdc_obj.payload.traceparent
+            case 'node':
+                if cdc_obj.meta.operation != 'deleted':
+                    carrier = cdc_obj.payload.after.properties.traceparent
+                else:
+                    carrier = cdc_obj.payload.before.properties.traceparent
+
+        @with_trace(carrier=r.headers)
+        @wraps(func)
+        async def inner(**kwargs):
+
+            value = await func(**kwargs)
+
+            logger.debug(f"return value: {value}")
+
+            headers = {}
+            if carrier:
+                headers = {"traceparent": carrier}
+
+            if not value:
+                return Response(status_code=status.HTTP_200_OK,
+                                headers=headers)
+            else:
+                context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
+
+                obj_ev = CloudEvent.make_obj_event(value)
+                match cdc_obj.payload.type:
+                    case "node":
+                        if cdc_obj.meta.operation != 'deleted':
+                            event_type = cdc_obj.payload.after.labels[0].lower(
+                            )
+                        else:
+                            event_type = cdc_obj.payload.before.labels[
+                                0].lower()
+                    case "relationship":
+                        event_type = cdc_obj.payload.label.lower()
+                    case _:
+                        event_type = "UNKNOWN"
+
+                #logger.info(f"ctx: {span.context}")
+                ev = CloudEvent(
+                    id=uuid4().hex,
+                    source=
+                    f"mindwm.{context_name}.graph.{ cdc_obj.payload.type.lower() }",
+                    subject=f"{ cdc_obj.meta.operation }",
+                    type=event_type,
+                    data=obj_ev.model_dump(),
+                    traceparent=carrier)
+
+                headers['content-type'] = 'application/cloudevents+json'
+                logger.debug(f"response headers: {headers}")
+                logger.debug(f"response event: {ev}")
+                return Response(content=ev.model_dump_json(), headers=headers)
 
         res = await inner(**kwargs)
         return res
