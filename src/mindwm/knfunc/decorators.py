@@ -12,8 +12,8 @@ from cloudevents.http import CloudEvent as CE
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
 from mindwm import logging
-from mindwm.model.events import (CloudEvent, IoDocumentEvent, KafkaCdcEvent,
-                                 LLMAnswerEvent, TouchEvent)
+from mindwm.model.events import (BaseEvent, IoDocumentEvent, KafkaCdcEvent,
+                                 LLMAnswerEvent, MindwmEvent, TouchEvent)
 from mindwm.model.graph import KafkaCdc
 from neontology import auto_constrain, init_neontology
 from opentelemetry import trace
@@ -95,12 +95,11 @@ def touch(func):
 def iodoc(func):
 
     @app.post("/")
-    async def wrapper(r: Request, response: Response):
+    async def wrapper(event: IoDocumentEvent, r: Request,
+                      response: Response) -> MindwmEvent:
+        logger.info(f"input event: {event}")
         func_sig = inspect.signature(func)
         kwargs = dict(func_sig.parameters)
-        b = await r.body()
-        iodoc_ev = IoDocumentEvent.model_validate_json(b)
-        iodoc_obj = iodoc_ev.data
         carrier = None
         if 'traceparent' in r.headers.keys():
             carrier = r.headers.get('traceparent')
@@ -109,24 +108,20 @@ def iodoc(func):
         if 'tracestate' in r.headers.keys():
             iodoc_obj.tracestate = r.headers.get('tracestate')
 
-        logger.info(f"bebebe")
-        logger.info(f"request headers: {r.headers}\nbody: {b}")
-        logger.debug(f"with injected traces: {iodoc_obj}")
-        uuid = r.headers.get('ce-id')
-        source = r.headers.get('ce-source')
+        uuid = event.data.uuid
         [
             _, username, hostname, _, tmux_b64, _some_id, tmux_session,
             tmux_pane, _
-        ] = source.split('.')
+        ] = event.source.split('.')
         tmux_socket_path = str(b64decode(tmux_b64)).strip()
         tmux_socket_path = tmux_socket_path.strip("b'").strip('/')
         socket_path = f"{username}@{hostname}/{tmux_socket_path}"
         session_id = f"{socket_path}:{tmux_session}"
         pane_title = f"{session_id}%{tmux_pane}"
         if 'iodocument' in kwargs:
-            kwargs['iodocument'] = iodoc_obj
+            kwargs['iodocument'] = event.data
         if 'uuid' in kwargs:
-            kwargs['uuid'] = r.headers.get('ce-id')
+            kwargs['uuid'] = uuid
         if 'username' in kwargs:
             kwargs['username'] = username
         if 'hostname' in kwargs:
@@ -156,10 +151,8 @@ def iodoc(func):
         async def inner(**kwargs):
             value = await func(**kwargs)
 
-            logger.debug(f"return value: {value}")
-
+            headers = {}
             if not value:
-                headers = {}
                 if carrier:
                     headers = {"traceparent": carrier}
                 return Response(status_code=status.HTTP_200_OK,
@@ -167,28 +160,18 @@ def iodoc(func):
             else:
                 context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
 
-                obj_ev = CloudEvent.make_obj_event(value)
-                attributes = {
-                    "id": uuid4().hex,
-                    "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
-                    #"subject": f"{source}.feedback",
-                    # TODO: fix the subject to variant from above when we implement new naming convention
-                    "subject": f"mindwm.{username}.{hostname}.knfunc.feedback",
-                    "type": obj_ev.type,
-                    #"ce-traceparent": r.headers.get('ce-traceparent')
-                }
+                res_ev = value
+                res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
+                res_ev.subject = f"mindwm.{username}.{hostname}.knfunc.feedback",
 
-                data = obj_ev.model_dump()
-                event = CE(attributes, data)
-                headers, body = to_structured(event)
-                #headers['content-type'] = 'application/cloudevents+json'
-                logger.debug(f"response: {headers}\n{body}")
-                response.headers.update(headers)
-                return JSONResponse(content=json.loads(body), headers=headers)
+                body = res_ev.model_dump_json()
+                headers['content-type'] = 'application/cloudevents+json'
+                logger.debug(f"response headers: {headers}")
+                logger.debug(f"response body: {body}")
+                return Response(content=body, headers=headers)
 
         res = await inner(**kwargs)
         return res
-        #return inner
 
     return wrapper
 
