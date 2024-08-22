@@ -4,6 +4,7 @@ import os
 from base64 import b64decode
 from collections.abc import Callable
 from functools import wraps
+from typing import Optional
 from uuid import uuid4
 
 import mindwm.model.graph as graphModel
@@ -12,6 +13,7 @@ from cloudevents.http import CloudEvent as CE
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
 from mindwm import logging
+from mindwm.knfunc.trace_decorator import instrument
 from mindwm.model.events import (BaseEvent, IoDocumentEvent, KafkaCdcEvent,
                                  LLMAnswerEvent, MindwmEvent, TouchEvent)
 from mindwm.model.graph import KafkaCdc
@@ -28,6 +30,7 @@ from opentelemetry.sdk.resources import HOST_NAME, SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (BatchSpanProcessor,
                                             ConsoleSpanExporter)
+from opentelemetry.trace.propagation import set_span_in_context
 from opentelemetry.trace.propagation.tracecontext import \
     TraceContextTextMapPropagator
 
@@ -38,6 +41,40 @@ trace.set_tracer_provider(trace_provider)
 logging.basicConfig(level=os.environ.get('LOG_LEVEL', 'INFO'))
 logger = logging.getLogger(__name__)
 app = FastAPI()
+
+
+def event(func):
+
+    @app.post('/')
+    async def wrapper(event: MindwmEvent, request: Request,
+                      response: Response) -> Optional[MindwmEvent]:
+        service_name = func.__name__
+        func_sig = inspect.signature(func)
+        xx = [p.annotation for p in func_sig.parameters.values()]
+        kwargs = dict(func_sig.parameters)
+        ctx = TraceContextTextMapPropagator().extract(carrier=request.headers)
+        headers = response.headers
+        tracer = trace.get_tracer(service_name)
+
+        headers = {}
+        with tracer.start_span(service_name, context=ctx) as span:
+            ctx = set_span_in_context(span)
+            TraceContextTextMapPropagator().inject(headers, ctx)
+            res_ev = await func(event)
+            headers['content-type'] = 'application/cloudevents+json'
+
+            if res_ev:
+                if 'traceparent' in headers.keys():
+                    res_ev.traceparent = headers['traceparent']
+
+                body = res_ev.model_dump_json()
+                logger.info(f"response headers: {headers}")
+                logger.info(f"response body: {body}")
+                return Response(content=body, headers=headers)
+            else:
+                logger.info(f"response headers: {headers}")
+                return Response(status_code=status.HTTP_200_OK,
+                                headers=headers)
 
 
 def with_trace(carrier: dict = {}):
