@@ -13,7 +13,6 @@ from cloudevents.http import CloudEvent as CE
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
 from mindwm import logging
-from mindwm.knfunc.trace_decorator import instrument
 from mindwm.model.events import (BaseEvent, IoDocumentEvent, KafkaCdcEvent,
                                  LLMAnswerEvent, MindwmEvent, TouchEvent)
 from mindwm.model.graph import KafkaCdc
