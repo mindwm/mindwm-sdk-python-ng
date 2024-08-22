@@ -45,8 +45,8 @@ app = FastAPI()
 def event(func):
 
     @app.post('/')
-    async def wrapper(event: MindwmEvent, request: Request,
-                      response: Response) -> Optional[MindwmEvent]:
+    async def wrapper(event: BaseEvent, request: Request,
+                      response: Response) -> Optional[BaseEvent]:
         service_name = func.__name__
         func_sig = inspect.signature(func)
         xx = [p.annotation for p in func_sig.parameters.values()]

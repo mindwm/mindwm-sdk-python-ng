@@ -53,7 +53,7 @@ class BaseEvent(BaseModel):
 
 class IoDocumentEvent(BaseEvent):
     data: IoDocument
-    type: Literal['org.mindwm.v1.iodocument'] = 'org.mindwm.v1.iodocumen'
+    type: Literal['org.mindwm.v1.iodocument'] = 'org.mindwm.v1.iodocument'
 
 
 class TouchEvent(BaseEvent):
