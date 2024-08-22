@@ -8,6 +8,9 @@ class MindwmObject(BaseModel):
     traceparent: Optional[str] = None
     tracestate: Optional[str] = None
 
+    def to_json(self):
+        return self.model_dump_json()
+
     def model_dump(self, **kwargs):
         """
         This Overrides the default model dump method to exclude None values
@@ -39,6 +42,18 @@ class LLMAnswer(MindwmObject):
     description: str
 
 
+class Ping(MindwmObject):
+    uuid: str = Field(description="uniq action id",
+                      default_factory=lambda: uuid4().hex)
+    payload: Optional[str] = None
+
+
+class Pong(MindwmObject):
+    payload: Optional[str] = None
+    uuid: str
+
+
+# Actions
 class Action(MindwmObject):
     uuid: str = Field(description="uniq action id",
                       default_factory=lambda: uuid4().hex)
