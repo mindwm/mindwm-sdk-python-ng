@@ -29,6 +29,7 @@ python3.pkgs.buildPythonPackage rec {
     "mindwm.model.events"
     "mindwm.model.graph"
     "neontology"
+    "strictjson"
   ];
   format = "pyproject";
   nativeBuildInputs = with python3.pkgs; [ setuptools ];

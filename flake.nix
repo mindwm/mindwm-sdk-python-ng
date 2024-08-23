@@ -7,6 +7,8 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     neontology-py.url = "github:mindwm/neontology";
     neontology-py.inputs.nixpkgs.follows = "nixpkgs";
+    strictjson-py.url = "github:mindwm/strictjson.py-nix";
+    strictjson-py.inputs.nixpkgs.follows = "nixpkgs";
     devshell.url = "github:numtide/devshell/main";
     devshell.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -21,6 +23,7 @@
       let
         my_python = pkgs.python3.withPackages (ps: with ps; [
           inputs.neontology-py.packages.${system}.default
+          inputs.strictjson-py.packages.${system}.default
           pydantic dateutil urllib3
           opentelemetry-sdk opentelemetry-exporter-otlp
           neo4j
