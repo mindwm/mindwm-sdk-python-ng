@@ -79,9 +79,12 @@ def event(func):
                 #res_ev.subject = request.headers['ce-source']
                 res_ev.subject = request.headers['ce-source']
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
-                resp = to_response(res_ev, extra_headers)
-                logger.debug(f'response body: {resp.body}')
-                logger.debug(f'response headers: {resp.headers}')
+                #resp = to_response(res_ev, extra_headers)
+                extra_headers['content-type'] = 'application/cloudevents+json'
+                resp = Response(content=res_ev.model_dump_json(),
+                                headers=extra_headers)
+                #logger.debug(f'response body: {resp.body}')
+                #logger.debug(f'response headers: {resp.headers}')
                 return resp
             else:
                 logger.debug('reply with empty response')
