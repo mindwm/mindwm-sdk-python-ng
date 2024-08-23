@@ -76,6 +76,7 @@ def to_response(ev: MindwmEvent, extra_headers: dict = {}) -> (Response):
     for h in to_headers:
         headers[f"CE-{h.capitalize()}"] = ev_dict[h]
 
-    headers['content-type'] = 'application/cloudevents+json'
+    #headers['content-type'] = 'application/cloudevents+json'
+    headers['content-type'] = 'application/json'
     headers.update(extra_headers)
     return Response(content=body.model_dump_json(), headers=headers)
