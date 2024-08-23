@@ -48,17 +48,19 @@ def event(func):
     async def wrapper(request: Request,
                       response: Response) -> Optional[MindwmEvent]:
         ev = await from_request(request)
-        logger.info(f"ev: {ev}")
-        service_name = func.__name__
+        logger.debug(f"event received: {ev}")
+        service_name = f"knfunc.{func.__name__}"
         func_sig = inspect.signature(func)
         xx = [p.annotation for p in func_sig.parameters.values()]
         kwargs = dict(func_sig.parameters)
         ctx = TraceContextTextMapPropagator().extract(carrier=request.headers)
         headers = response.headers
         tracer = trace.get_tracer(service_name)
+        logger.info(f"my service_name: {service_name}")
 
         headers = {}
-        with tracer.start_span(service_name, context=ctx) as span:
+        with tracer.start_as_current_span(service_name, context=ctx) as span:
+            #with tracer.start_span(service_name, context=ctx) as span:
             extra_headers = {}
             ctx = set_span_in_context(span)
             TraceContextTextMapPropagator().inject(extra_headers, ctx)
@@ -75,10 +77,11 @@ def event(func):
 
                 res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
                 res_ev.subject = f"mindwm.{username}.{hostname}.knfunc.feedback",
-                logger.info(f'res_ev: {res_ev}')
+                logger.debug(f'reply with MindwmEvent: {res_ev}')
                 resp = to_response(ev, extra_headers=extra_headers)
                 return resp
             else:
+                logger.debug('reply with empty response')
                 return Response(status_code=status.HTTP_200_OK,
                                 headers=headers)
 
