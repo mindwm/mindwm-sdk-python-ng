@@ -64,7 +64,7 @@ def event(func):
             #with tracer.start_span(service_name, context=ctx) as span:
             extra_headers = {}
             ctx = set_span_in_context(span)
-            #TraceContextTextMapPropagator().inject(extra_headers, ctx)
+            TraceContextTextMapPropagator().inject(extra_headers, ctx)
             res_obj = await func(ev.data)
             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
             [
@@ -73,13 +73,12 @@ def event(func):
             ] = ev.source.lstrip('mindwm').lstrip('org.mindwm').split('.')
             if res_obj:
                 res_ev = MindwmEvent(data=res_obj, type=res_obj.type)
-                #if 'traceparent' in headers.keys():
-                #    res_ev.traceparent = extra_headers['traceparent']
+                if 'traceparent' in headers.keys():
+                    res_ev.traceparent = extra_headers['traceparent']
 
                 res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
                 res_ev.subject = f"mindwm.{username}.{hostname}.knfnc.feedback"
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
-                #resp = to_response(ev, extra_headers=extra_headers)
                 extra_headers['content-type'] = 'application/cloudevents+json'
                 resp = Response(content=res_ev.model_dump_json(),
                                 headers=extra_headers)
