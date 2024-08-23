@@ -79,7 +79,7 @@ def event(func):
                 res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
                 res_ev.subject = f"mindwm.{username}.{hostname}.knfnc.feedback"
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
-                extra_headers['content-type'] = 'application/cloudevents+json'
+                #extra_headers['content-type'] = 'application/cloudevents+json'
                 resp = to_response(res_ev, extra_headers)
                 #resp = Response(content=res_ev.model_dump_json(),
                 #                headers=extra_headers)
