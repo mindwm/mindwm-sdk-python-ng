@@ -77,7 +77,7 @@ def event(func):
                 #    res_ev.traceparent = extra_headers['traceparent']
 
                 res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
-                res_ev.subject = f"mindwm.{username}.{hostname}.knfnc.feedback",
+                res_ev.subject = f"mindwm.{username}.{hostname}.knfnc.feedback"
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
                 #resp = to_response(ev, extra_headers=extra_headers)
                 extra_headers['content-type'] = 'application/cloudevents+json'
