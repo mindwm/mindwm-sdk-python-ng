@@ -76,9 +76,11 @@ def event(func):
                     res_ev.traceparent = extra_headers['traceparent']
 
                 res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
-                res_ev.subject = f"mindwm.{username}.{hostname}.knfunc.feedback",
+                res_ev.subject = f"mindwm.{username}.{hostname}.knfnc.feedback",
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
                 resp = to_response(ev, extra_headers=extra_headers)
+                logger.debug(f'response body: {resp.body}')
+                logger.debug(f'response headers: {resp.headers}')
                 return resp
             else:
                 logger.debug('reply with empty response')
