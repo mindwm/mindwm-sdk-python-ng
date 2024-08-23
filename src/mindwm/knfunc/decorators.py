@@ -75,7 +75,7 @@ def event(func):
                 if 'traceparent' in headers.keys():
                     res_ev.traceparent = extra_headers['traceparent']
 
-                res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
+                res_ev.source = f"org.mindwm.{context_name}.knfunc.{func.__name__}"
                 #res_ev.subject = request.headers['ce-source']
                 res_ev.subject = request.headers['ce-source']
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
