@@ -49,6 +49,7 @@ def event(func):
                       response: Response) -> Optional[MindwmEvent]:
         ev = await from_request(request)
         logger.debug(f"event received: {ev}")
+        logger.debug(f"request headers: {request.headers}")
         service_name = f"knfunc.{func.__name__}"
         func_sig = inspect.signature(func)
         xx = [p.annotation for p in func_sig.parameters.values()]
