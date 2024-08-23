@@ -2,6 +2,7 @@
 , pkgs
 , my_python
 , neontology
+, strictjson
 }:
 with pkgs;
 
@@ -20,8 +21,9 @@ python3.pkgs.buildPythonPackage rec {
     fastapi uvicorn
     neontology
     pyyaml
-   openai
-   cloudevents deprecation
+    openai
+    cloudevents deprecation
+    strictjson
   ];
 
   pythonImportsCheck = [

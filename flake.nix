@@ -37,6 +37,7 @@
         project = pkgs.callPackage ./package.nix {
           my_python = pkgs.python3;
           neontology = inputs.neontology-py.packages.${system}.default;
+          strictjson = inputs.strictjson-py.packages.${system}.default;
         };
       in { 
         packages.default = project;
