@@ -13,9 +13,9 @@ from cloudevents.http import CloudEvent as CE
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
 from mindwm import logging
-from mindwm.model.events import (BaseEvent, IoDocumentEvent, KafkaCdcEvent,
-                                 LLMAnswerEvent, MindwmEvent, TouchEvent)
+from mindwm.model.events import MindwmEvent, from_request
 from mindwm.model.graph import KafkaCdc
+from mindwm.model.objects import IoDocument, KafkaCdc, LLMAnswer, Touch
 from neontology import auto_constrain, init_neontology
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
@@ -45,8 +45,10 @@ app = FastAPI()
 def event(func):
 
     @app.post('/')
-    async def wrapper(event: BaseEvent, request: Request,
-                      response: Response) -> Optional[BaseEvent]:
+    async def wrapper(request: Request,
+                      response: Response) -> Optional[MindwmEvent]:
+        ev = await from_request(request)
+        logger.info(f"ev: {ev}")
         service_name = func.__name__
         func_sig = inspect.signature(func)
         xx = [p.annotation for p in func_sig.parameters.values()]
@@ -59,19 +61,19 @@ def event(func):
         with tracer.start_span(service_name, context=ctx) as span:
             ctx = set_span_in_context(span)
             TraceContextTextMapPropagator().inject(headers, ctx)
-            res_ev = await func(event)
+            res_obj = await func(ev.data)
             headers['content-type'] = 'application/cloudevents+json'
 
-            if res_ev:
+            if res_obj:
+                res_ev = MindwmEvent(data=res_obj, type=res_obj.type)
                 if 'traceparent' in headers.keys():
                     res_ev.traceparent = headers['traceparent']
 
+                res_ev.source = "omg.bebebe"
+                logger.info(f'res_ev: {res_ev}')
                 body = res_ev.model_dump_json()
-                logger.info(f"response headers: {headers}")
-                logger.info(f"response body: {body}")
                 return Response(content=body, headers=headers)
             else:
-                logger.info(f"response headers: {headers}")
                 return Response(status_code=status.HTTP_200_OK,
                                 headers=headers)
 

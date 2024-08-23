@@ -1,21 +1,24 @@
+import json
 from typing import Annotated, Any, Literal, Optional, Type, TypeVar, Union
 from uuid import uuid4
 
-from fastapi import Body
+from fastapi import Body, Request
 from pydantic import BaseModel, Field
 
 from .graph import KafkaCdc
-from .objects import (IoDocument, LLMAnswer, Ping, Pong, ShowMessage, Touch,
-                      TypeText)
+from .objects import (IoDocument, KafkaCdc, LLMAnswer, Ping, Pong, ShowMessage,
+                      Touch, TypeText)
 
 
-class BaseEvent(BaseModel):
+class MindwmEvent(BaseModel):
     id: str = Field(description="uniq event id",
                     default_factory=lambda: uuid4().hex)
     source: Optional[str] = None
     specversion: str = "1.0"
-    data: Optional[Any] = Field(default=None, )
-    type: Optional[str] = None
+    data: Annotated[Union[IoDocument, Touch, LLMAnswer, ShowMessage, TypeText,
+                          KafkaCdc, Ping, Pong],
+                    Body(discriminator="type")]
+    type: str
     datacontenttype: Optional[str] = None
     dataschema: Optional[str] = None
     subject: Optional[str] = None
@@ -51,54 +54,15 @@ class BaseEvent(BaseModel):
         return super().model_dump_json(exclude_none=True)
 
 
-class IoDocumentEvent(BaseEvent):
-    data: IoDocument
-    type: Literal['org.mindwm.v1.iodocument'] = 'org.mindwm.v1.iodocument'
+async def from_request(request: Request) -> MindwmEvent:
+    body = await request.body()
+    obj = json.loads(body)
+    ev_dict = {}
+    for k in request.headers.keys():
+        if k.startswith('ce'):
+            ev_dict[k.lstrip('ce-')] = request.headers.get(k)
 
-
-class TouchEvent(BaseEvent):
-    data: Touch
-    type: Literal['org.mindwm.v1.touch'] = 'org.mindwm.v1.touch'
-
-
-class LLMAnswerEvent(BaseEvent):
-    data: LLMAnswer
-    type: Literal['lorg.mindwm.v1.lmanswer'] = 'org.mindwm.v1.llmanswer'
-
-
-class ShowMessageEvent(BaseEvent):
-    data: ShowMessage
-    type: Literal['org.mindwm.v1.showmessage'] = 'org.mindwm.v1.showmessage'
-
-
-class TypeTextEvent(BaseEvent):
-    data: TypeText
-    type: Literal[
-        'org.mindwm.v1.typetextevent'] = 'org.mindwm.v1.typetextevent'
-
-
-class KafkaCdcEvent(BaseEvent):
-    knativearrivaltime: Optional[str] = None
-    key: Optional[str] = None
-    knativekafkaoffset: Optional[int] = None
-    knativekafkapartition: Optional[int] = None
-    partitionkey: Optional[str] = None
-    data: KafkaCdc
-    type: Literal[
-        'org.mindwm.v1.kafkacdcevent'] = 'org.mindwm.v1.kafkacdcevent'
-
-
-class PingEvent(BaseEvent):
-    data: Ping
-    type: Literal['org.mindwm.v1.ping'] = 'org.mindwm.v1.ping'
-
-
-class PongEvent(BaseEvent):
-    data: Pong
-    type: Literal['org.mindwm.v1.pong'] = 'org.mindwm.v1.pong'
-
-
-MindwmEvent = Annotated[Union[IoDocumentEvent, TouchEvent, LLMAnswerEvent,
-                              ShowMessageEvent, TypeTextEvent, KafkaCdcEvent,
-                              PingEvent, PongEvent],
-                        Body(discriminator="type")]
+    ev_dict['data'] = obj
+    ev_dict['type'] = obj['type']
+    ev = MindwmEvent.model_validate(ev_dict)
+    return ev
