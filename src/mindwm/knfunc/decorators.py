@@ -68,7 +68,7 @@ def event(func):
             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
             [
                 username, hostname, _, tmux_b64, _some_id, tmux_session,
-                tmux_pane, _
+                tmux_pane
             ] = ev.source.lstrip('mindwm').lstrip('org.mindwm').split('.')
             if res_obj:
                 res_ev = MindwmEvent(data=res_obj, type=res_obj.type)
@@ -76,6 +76,7 @@ def event(func):
                     res_ev.traceparent = extra_headers['traceparent']
 
                 res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
+                #res_ev.subject = request.headers['ce-source']
                 res_ev.subject = request.headers['ce-source']
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
                 resp = to_response(res_ev, extra_headers)
