@@ -13,7 +13,7 @@ from cloudevents.http import CloudEvent as CE
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
 from mindwm import logging
-from mindwm.model.events import MindwmEvent, from_request
+from mindwm.model.events import MindwmEvent, from_request, to_response
 from mindwm.model.graph import KafkaCdc
 from mindwm.model.objects import IoDocument, KafkaCdc, LLMAnswer, Touch
 from neontology import auto_constrain, init_neontology
@@ -59,20 +59,25 @@ def event(func):
 
         headers = {}
         with tracer.start_span(service_name, context=ctx) as span:
+            extra_headers = {}
             ctx = set_span_in_context(span)
-            TraceContextTextMapPropagator().inject(headers, ctx)
+            TraceContextTextMapPropagator().inject(extra_headers, ctx)
             res_obj = await func(ev.data)
-            headers['content-type'] = 'application/cloudevents+json'
-
+            context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
+            [
+                username, hostname, _, tmux_b64, _some_id, tmux_session,
+                tmux_pane, _
+            ] = ev.source.lstrip('mindwm').lstrip('org.mindwm').split('.')
             if res_obj:
                 res_ev = MindwmEvent(data=res_obj, type=res_obj.type)
                 if 'traceparent' in headers.keys():
-                    res_ev.traceparent = headers['traceparent']
+                    res_ev.traceparent = extra_headers['traceparent']
 
-                res_ev.source = "omg.bebebe"
+                res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
+                res_ev.subject = f"mindwm.{username}.{hostname}.knfunc.feedback",
                 logger.info(f'res_ev: {res_ev}')
-                body = res_ev.model_dump_json()
-                return Response(content=body, headers=headers)
+                resp = to_response(ev, extra_headers=extra_headers)
+                return resp
             else:
                 return Response(status_code=status.HTTP_200_OK,
                                 headers=headers)
@@ -202,11 +207,13 @@ def iodoc(func):
                 res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
                 res_ev.subject = f"mindwm.{username}.{hostname}.knfunc.feedback",
 
-                body = res_ev.model_dump_json()
-                headers['content-type'] = 'application/cloudevents+json'
+                #body = res_ev.model_dump_json()
+                #headers['content-type'] = 'application/cloudevents+json'
+                resp = to_response(res_ev)
                 logger.debug(f"response headers: {headers}")
                 logger.debug(f"response body: {body}")
-                return Response(content=body, headers=headers)
+                return Response(content=body.model_dump_json(),
+                                headers=headers)
 
         res = await inner(**kwargs)
         return res

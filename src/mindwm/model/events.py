@@ -2,7 +2,7 @@ import json
 from typing import Annotated, Any, Literal, Optional, Type, TypeVar, Union
 from uuid import uuid4
 
-from fastapi import Body, Request
+from fastapi import Body, Request, Response
 from pydantic import BaseModel, Field
 
 from .graph import KafkaCdc
@@ -66,3 +66,16 @@ async def from_request(request: Request) -> MindwmEvent:
     ev_dict['type'] = obj['type']
     ev = MindwmEvent.model_validate(ev_dict)
     return ev
+
+
+def to_response(ev: MindwmEvent, extra_headers: dict = {}) -> (Response):
+    body = ev.data
+    headers = {}
+    ev_dict = ev.model_dump()
+    to_headers = [k for k in ev_dict.keys() if k not in ['data', 'type']]
+    for h in to_headers:
+        headers[h.capitalize()] = ev_dict[h]
+
+    headers['content-type'] = 'application/cloudevents+json'
+    headers.update(extra_headers)
+    return Response(content=body.model_dump_json(), headers=headers)
