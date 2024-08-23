@@ -72,7 +72,7 @@ def to_response(ev: MindwmEvent, extra_headers: dict = {}) -> (Response):
     body = ev.data
     headers = {}
     ev_dict = ev.model_dump()
-    to_headers = [k for k in ev_dict.keys() if k not in ['data']]
+    to_headers = [k for k in ev_dict.keys() if k not in ['data', 'type']]
     for h in to_headers:
         headers[f"CE-{h.capitalize()}"] = ev_dict[h]
 
