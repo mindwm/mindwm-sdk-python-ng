@@ -1,9 +1,10 @@
 import json
-from typing import Annotated, Any, Literal, Optional, Type, TypeVar, Union
+from typing import (Annotated, Any, Dict, Literal, Optional, Type, TypeVar,
+                    Union)
 from uuid import uuid4
 
 from fastapi import Body, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer
 
 from .graph import KafkaCdc
 from .objects import (IoDocument, KafkaCdc, LLMAnswer, Ping, Pong, ShowMessage,
@@ -40,6 +41,14 @@ class MindwmEvent(BaseModel):
     knativekafkaoffset: Optional[int] = None
     knativekafkapartition: Optional[int] = None
     partitionkey: Optional[str] = None
+
+    # @model_serializer
+    # def ser_model(self) -> Dict[str, Any]:
+    #     res = {}
+    #     for k, v in self.__dict__.items():
+    #         res[k.capitalize()] = v
+
+    #     return res
 
     def model_dump(self, **kwargs):
         """

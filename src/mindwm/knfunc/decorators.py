@@ -81,6 +81,7 @@ def event(func):
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
                 #resp = to_response(res_ev, extra_headers)
                 extra_headers['content-type'] = 'application/cloudevents+json'
+                extra_headers['ce-knativebrokerttl'] = '255'
                 resp = Response(content=res_ev.model_dump_json(),
                                 headers=extra_headers)
                 #logger.debug(f'response body: {resp.body}')
