@@ -104,7 +104,7 @@ def with_trace(carrier: dict = {}):
             ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
             logger.debug(f"ctx: {ctx}")
             with tracer.start_as_current_span(service_name) as span:
-                span.set_attribute("omg", "bebebe")
+                span.set_attribute("omg", "XXX bebebe")
                 span.set_attribute("foo", "bar")
                 if 'trace_context' in kwargs.keys():
                     kwargs['trace_context'] = span.context

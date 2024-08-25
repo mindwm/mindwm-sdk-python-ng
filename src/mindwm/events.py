@@ -7,14 +7,15 @@ from functools import partial
 from time import sleep
 
 import nats
+from opentelemetry import trace
 from opentelemetry.trace.propagation.tracecontext import \
     TraceContextTextMapPropagator
 from pydantic import BaseModel
 
 from mindwm import logging
-from mindwm.knfunc.decorators import with_trace
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer(__name__)
 
 
 class NatsInterface:
@@ -49,44 +50,41 @@ class NatsInterface:
         await self.nc.subscribe(subj, cb=handler)
         logger.info(f"Subscribed to NATS subject: {subj}")
 
-    @with_trace()
-    #async def publish(self, subj, payload, trace_context):
     async def publish(self, subj, payload):
         carrier = {}
-        TraceContextTextMapPropagator().inject(carrier)
-        logger.debug(f"publish carrier: {carrier}")
-        headers = carrier
-        [_, traceId, spanId, _] = headers['traceparent'].split('-')
-        if 'traceparent' in headers.keys():
-            #logger.debug("copy traceparent as ce-traceparent")
-            #headers['ce-traceparent'] = headers['traceparent']
-            #headers['X-B3-Traceid'] = traceId
-            #headers['X-B3-Spanid'] = spanId
-            #headers['X-B3-Sampled'] = '1'
-            payload.traceparent = headers['traceparent']
+        with tracer.start_as_current_span(__name__) as span:
+            span.set_attribute("subject", subj)
+            TraceContextTextMapPropagator().inject(carrier)
+            logger.debug(f"publish carrier: {carrier}")
+            headers = carrier
+            if 'traceparent' in headers.keys():
+                payload.traceparent = headers['traceparent']
 
-        logger.debug(f"send message to {subj}: {headers} {payload}")
-        await self.nc.publish(subj,
-                              bytes(payload.model_dump_json(),
-                                    encoding='utf-8'),
-                              headers=headers)
+            logger.debug(f"send message to {subj}: {headers} {payload}")
 
-    @with_trace()
+            await self.nc.publish(subj,
+                                  bytes(payload.model_dump_json(),
+                                        encoding='utf-8'),
+                                  headers=headers)
+
     async def message_handler(self, subj, callback, msg):
         logger.debug(f"received: {subj}: {msg}")
         data = json.loads(msg.data.decode())
-        if 'message' in data.keys():
-            message = data['message']
-            if message['traceparent']:
-                carrier = message['traceparent']
-                ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
-                res = None
-                with tracer.start_as_current_span('message_handler',
-                                                  context=ctx) as span:
-                    if callback:
-                        res = await callback(message)
+        carrier = {}
+        if 'traceparent' in msg.headers.keys():
+            carrier = {"traceparent": msg.headers['traceparent']}
+            logger.debug(f"message_handler: carrier: {carrier}")
 
-                return res
+        ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
+        with tracer.start_as_current_span(__name__, context=ctx) as span:
+            res = None
+            if 'message' in data.keys():
+                message = data['message']
+
+                if callback:
+                    res = await callback(message)
+
+            return res
 
 
 _nats = NatsInterface()
