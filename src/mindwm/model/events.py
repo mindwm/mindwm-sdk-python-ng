@@ -92,7 +92,10 @@ def to_response(ev: MindwmEvent, extra_headers: dict = {}) -> (Response):
     ev_dict = ev.model_dump()
     to_headers = [k for k in ev_dict.keys() if k not in ['data']]
     for h in to_headers:
-        headers[f"CE-{h.capitalize()}"] = ev_dict[h]
+        if h == 'traceparent':
+            headers['traceparent'] = ev_dict[h]
+        else:
+            headers[f"CE-{h.capitalize()}"] = str(ev_dict[h])
 
     #headers['content-type'] = 'application/cloudevents+json'
     headers['content-type'] = 'application/json'

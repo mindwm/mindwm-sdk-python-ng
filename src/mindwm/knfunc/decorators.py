@@ -80,7 +80,16 @@ def event(func):
             ctx = set_span_in_context(span)
             TraceContextTextMapPropagator().inject(extra_headers, ctx)
 
-            res_obj = await func(ev.data, request=request)
+            new_kwargs = {}
+            if 'request' in kwargs.keys():
+                new_kwargs['request'] = request
+            if 'response' in kwargs.keys():
+                new_kwargs['response'] = response
+
+            res_obj = await func(ev.data, **new_kwargs)
+            if type(res_obj) is Response:
+                return res_obj
+
             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
             if res_obj:
                 res_ev = MindwmEvent(data=res_obj, type=res_obj.type)
@@ -238,17 +247,5 @@ def llm_answer(func):
 
         res = await inner(**kwargs)
         return res
-
-    return wrapper
-
-
-def kafka_cdc(func):
-
-    @event
-    async def wrapper(cdc_obj: KafkaCdc, request: Request = None):
-        func_sig = inspect.signature(func)
-        xx = [p.annotation for p in func_sig.parameters.values()]
-        kwargs = dict(func_sig.parameters)
-        logger.info(f"request: {request}")
 
     return wrapper
