@@ -75,4 +75,6 @@ def test_kafka_cdc():
 
     response = client.post("/", headers=headers, content=json.dumps(payload))
     assert response.status_code == 200
-    #assert response.json() == {"msg": "Hello World"}
+    assert response.headers['traceparent'] != {
+        "traceparent": payload['payload']['after']['properties']['traceparent']
+    }
