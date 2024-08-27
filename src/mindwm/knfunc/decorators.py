@@ -42,6 +42,21 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 
+@app.get("/")
+def get_root():
+    logger.warning("GET / received")
+
+
+@app.get("/health/liveness")
+def liveness():
+    return "OK"
+
+
+@app.get("/health/readiness")
+def readiness():
+    return "OK"
+
+
 def event(func):
 
     @app.post('/')
@@ -64,7 +79,8 @@ def event(func):
             extra_headers = {}
             ctx = set_span_in_context(span)
             TraceContextTextMapPropagator().inject(extra_headers, ctx)
-            res_obj = await func(ev.data)
+
+            res_obj = await func(ev.data, request=request)
             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
             [
                 username, hostname, _, tmux_b64, _some_id, tmux_session,
@@ -93,86 +109,37 @@ def event(func):
                                 headers=headers)
 
 
-def with_trace(carrier: dict = {}):
-
-    def decorator(func: Callable):
-
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            service_name = func.__name__
-            tracer = trace.get_tracer(service_name)
-
-            ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
-            logger.debug(f"ctx: {ctx}")
-            with tracer.start_as_current_span(service_name) as span:
-                span.set_attribute("omg", "XXX bebebe")
-                span.set_attribute("foo", "bar")
-                if 'trace_context' in kwargs.keys():
-                    kwargs['trace_context'] = span.context
-                res = await func(*args, **kwargs)
-                return res
-
-        return wrapper
-
-    return decorator
-
-
-@app.get("/")
-def get_root():
-    logger.warning("GET / received")
-
-
-@app.get("/health/liveness")
-def liveness():
-    return "OK"
-
-
-@app.get("/health/readiness")
-def readiness():
-    return "OK"
-
-
-def touch(func):
-
-    @wraps(func)
-    @app.post("/")
-    async def wrapper(touch_ev: TouchEvent):
-        value = func(touch_ev.data)
-        if not value:
-            return Response(status_code=status.HTTP_200_OK)
-        else:
-            return value
-        return value
-
-
 def iodoc(func):
 
-    @app.post("/")
-    async def wrapper(event: IoDocumentEvent, r: Request,
-                      response: Response) -> MindwmEvent:
-        logger.info(f"input event: {event}")
+    @event
+    async def wrapper(iodoc_obj: IoDocument,
+                      request: Request = None) -> MindwmEvent:
+        logger.info(f"input iodoc: {iodoc_obj}")
+        logger.info(f"input request headers: {request.headers}")
+        ev = await from_request(request)
+        logger.info(f"event: {ev}")
         func_sig = inspect.signature(func)
+        xx = [p.annotation for p in func_sig.parameters.values()]
         kwargs = dict(func_sig.parameters)
+        logger.info(f"kwargs: {kwargs}")
         carrier = None
-        if 'traceparent' in r.headers.keys():
-            carrier = r.headers.get('traceparent')
+        if 'traceparent' in request.headers.keys():
+            carrier = request.headers.get('traceparent')
             iodoc_obj.traceparent = carrier
 
-        if 'tracestate' in r.headers.keys():
-            iodoc_obj.tracestate = r.headers.get('tracestate')
+        if 'tracestate' in request.headers.keys():
+            iodoc_obj.tracestate = request.headers.get('tracestate')
 
-        uuid = event.data.uuid
-        [
-            _, username, hostname, _, tmux_b64, _some_id, tmux_session,
-            tmux_pane, _
-        ] = event.source.split('.')
+        uuid = iodoc_obj.uuid
+        [username, hostname, _, tmux_b64, _some_id, tmux_session, tmux_pane
+         ] = ev.source.lstrip('mindwm').lstrip('org.mindwm').split('.')
         tmux_socket_path = str(b64decode(tmux_b64)).strip()
         tmux_socket_path = tmux_socket_path.strip("b'").strip('/')
         socket_path = f"{username}@{hostname}/{tmux_socket_path}"
         session_id = f"{socket_path}:{tmux_session}"
         pane_title = f"{session_id}%{tmux_pane}"
         if 'iodocument' in kwargs:
-            kwargs['iodocument'] = event.data
+            kwargs['iodocument'] = iodoc_obj
         if 'uuid' in kwargs:
             kwargs['uuid'] = uuid
         if 'username' in kwargs:
@@ -194,41 +161,109 @@ def iodoc(func):
         if 'pane_title' in kwargs:
             kwargs['pane_title'] = pane_title
         if 'graph' in kwargs:
-            if init_neontology():
+            try:
+                init_neontology()
                 auto_constrain()
+            except Exception as e:
+                logger.error("failed to initialize Neontology", e)
 
             kwargs['graph'] = graphModel
 
-        @with_trace(carrier=r.headers)
-        @wraps(func)
-        async def inner(**kwargs):
-            value = await func(**kwargs)
-
-            headers = {}
-            if not value:
-                if carrier:
-                    headers = {"traceparent": carrier}
-                return Response(status_code=status.HTTP_200_OK,
-                                headers=headers)
-            else:
-                context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
-
-                res_ev = value
-                res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
-                res_ev.subject = f"mindwm.{username}.{hostname}.knfunc.feedback",
-
-                #body = res_ev.model_dump_json()
-                #headers['content-type'] = 'application/cloudevents+json'
-                resp = to_response(res_ev)
-                logger.debug(f"response headers: {headers}")
-                logger.debug(f"response body: {body}")
-                return Response(content=body.model_dump_json(),
-                                headers=headers)
-
-        res = await inner(**kwargs)
-        return res
+        return await func(**kwargs)
 
     return wrapper
+
+    #     func_sig = inspect.signature(func)
+    #     kwargs = dict(func_sig.parameters)
+    #     carrier = None
+    #     if 'traceparent' in r.headers.keys():
+    #         carrier = r.headers.get('traceparent')
+    #         iodoc_obj.traceparent = carrier
+
+    #     if 'tracestate' in r.headers.keys():
+    #         iodoc_obj.tracestate = r.headers.get('tracestate')
+
+    #     uuid = event.data.uuid
+    #     [
+    #         _, username, hostname, _, tmux_b64, _some_id, tmux_session,
+    #         tmux_pane, _
+    #     ] = event.source.split('.')
+    #     tmux_socket_path = str(b64decode(tmux_b64)).strip()
+    #     tmux_socket_path = tmux_socket_path.strip("b'").strip('/')
+    #     socket_path = f"{username}@{hostname}/{tmux_socket_path}"
+    #     session_id = f"{socket_path}:{tmux_session}"
+    #     pane_title = f"{session_id}%{tmux_pane}"
+    #     if 'iodocument' in kwargs:
+    #         kwargs['iodocument'] = event.data
+    #     if 'uuid' in kwargs:
+    #         kwargs['uuid'] = uuid
+    #     if 'username' in kwargs:
+    #         kwargs['username'] = username
+    #     if 'hostname' in kwargs:
+    #         kwargs['hostname'] = hostname
+    #     if 'tmux_b64' in kwargs:
+    #         kwargs['tmux_b64'] = tmux_b64
+    #     if 'tmux_session' in kwargs:
+    #         kwargs['tmux_session'] = tmux_session
+    #     if 'tmux_pane' in kwargs:
+    #         kwargs['tmux_pane'] = tmux_pane
+    #     if 'tmux_socket_path' in kwargs:
+    #         kwargs['tmux_socket_path'] = tmux_socket_path
+    #     if 'socket_path' in kwargs:
+    #         kwargs['socket_path'] = socket_path
+    #     if 'session_id' in kwargs:
+    #         kwargs['session_id'] = session_id
+    #     if 'pane_title' in kwargs:
+    #         kwargs['pane_title'] = pane_title
+    #     if 'graph' in kwargs:
+    #         if init_neontology():
+    #             auto_constrain()
+
+    #         kwargs['graph'] = graphModel
+
+    #     @with_trace(carrier=r.headers)
+    #     @wraps(func)
+    #     async def inner(**kwargs):
+    #         value = await func(**kwargs)
+
+    #         headers = {}
+    #         if not value:
+    #             if carrier:
+    #                 headers = {"traceparent": carrier}
+    #             return Response(status_code=status.HTTP_200_OK,
+    #                             headers=headers)
+    #         else:
+    #             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
+
+    #             res_ev = value
+    #             res_ev.source = f"mindwm.{context_name}.knfunc.{func.__name__}"
+    #             res_ev.subject = f"mindwm.{username}.{hostname}.knfunc.feedback",
+
+    #             #body = res_ev.model_dump_json()
+    #             #headers['content-type'] = 'application/cloudevents+json'
+    #             resp = to_response(res_ev)
+    #             logger.debug(f"response headers: {headers}")
+    #             logger.debug(f"response body: {body}")
+    #             return Response(content=body.model_dump_json(),
+    #                             headers=headers)
+
+    #     res = await inner(**kwargs)
+    #     return res
+
+    # return wrapper
+
+
+def touch(func):
+
+    @wraps(func)
+    @app.post("/")
+    async def wrapper(touch_ev: TouchEvent):
+        value = func(touch_ev.data)
+        if not value:
+            return Response(status_code=status.HTTP_200_OK)
+        else:
+            return value
+        return value
 
 
 def llm_answer(func):
