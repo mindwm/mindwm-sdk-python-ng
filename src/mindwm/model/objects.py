@@ -59,15 +59,6 @@ class Pong(MindwmObject):
     type: Literal['org.mindwm.v1.pong'] = 'org.mindwm.v1.pong'
 
 
-class KafkaCdc(MindwmObject):
-    knativearrivaltime: Optional[str] = None
-    key: Optional[str] = None
-    knativekafkaoffset: Optional[int] = None
-    knativekafkapartition: Optional[int] = None
-    partitionkey: Optional[str] = None
-    type: Literal['org.mindwm.v1.kafkacdc'] = 'org.mindwm.v1.kafkacdc'
-
-
 # Actions
 class Action(MindwmObject):
     uuid: str = Field(description="uniq action id",

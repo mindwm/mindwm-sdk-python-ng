@@ -206,14 +206,15 @@ class KafkaCdcNode(BaseModel):
 
 class KafkaCdcSchema(BaseModel):
     properties: Dict[str, str]
-    constraints: List[str]
+    constraints: List[Any]
 
 
 class KafkaCdc(BaseModel):
     meta: KafkaCdcMeta
     payload: Annotated[Union[KafkaCdcNode, KafkaCdcRelation],
                        Field(discriminator='type')]
-    schema: KafkaCdcSchema
+    cdc_schema: KafkaCdcSchema = Field(..., alias='schema')
+    type: Literal['dev.knative.kafka.event'] = 'dev.knative.kafka.event'
 
     def get_object_before(self):
         return self.payload.before.properties

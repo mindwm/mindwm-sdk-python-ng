@@ -4,11 +4,14 @@ from typing import (Annotated, Any, Dict, Literal, Optional, Type, TypeVar,
 from uuid import uuid4
 
 from fastapi import Body, Request, Response
+from mindwm import logging
 from pydantic import BaseModel, Field, model_serializer
 
 from .graph import KafkaCdc
-from .objects import (IoDocument, KafkaCdc, LLMAnswer, Ping, Pong, ShowMessage,
-                      Touch, TypeText)
+from .objects import (IoDocument, LLMAnswer, Ping, Pong, ShowMessage, Touch,
+                      TypeText)
+
+logger = logging.getLogger(__name__)
 
 
 class MindwmEvent(BaseModel):
@@ -72,7 +75,13 @@ async def from_request(request: Request) -> MindwmEvent:
             ev_dict[k.lstrip('ce-')] = request.headers.get(k)
 
     ev_dict['data'] = obj
-    ev_dict['type'] = obj['type']
+    logger.info(f"ev_dict: {ev_dict}")
+    # TODO: (@omgbebebe) should we copy a type from obj?
+    if 'type' in obj.keys():
+        ev_dict['type'] = obj['type']
+    else:
+        obj['type'] = ev_dict['type']
+
     ev = MindwmEvent.model_validate(ev_dict)
     return ev
 

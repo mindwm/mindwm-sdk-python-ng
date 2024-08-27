@@ -25,6 +25,7 @@
           inputs.neontology-py.packages.${system}.default
           inputs.strictjson-py.packages.${system}.default
           pydantic dateutil urllib3
+          pytest
           opentelemetry-sdk opentelemetry-exporter-otlp
           neo4j
           pandas
@@ -44,7 +45,7 @@
         devshells.default = {
             env = [];
             devshell.startup.pypath = pkgs.lib.noDepEntry ''
-              export PYTHONPATH="$PYTHONPATH:./src:./test"
+              export PYTHONPATH="$PYTHONPATH:./src:./tests"
             '';
             commands = [
             {

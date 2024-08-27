@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from mindwm import logging
 from mindwm.model.events import MindwmEvent, from_request, to_response
 from mindwm.model.graph import KafkaCdc
-from mindwm.model.objects import IoDocument, KafkaCdc, LLMAnswer, Touch
+from mindwm.model.objects import IoDocument, LLMAnswer, Touch
 from neontology import auto_constrain, init_neontology
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
@@ -82,17 +82,12 @@ def event(func):
 
             res_obj = await func(ev.data, request=request)
             context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
-            [
-                username, hostname, _, tmux_b64, _some_id, tmux_session,
-                tmux_pane
-            ] = ev.source.lstrip('mindwm').lstrip('org.mindwm').split('.')
             if res_obj:
                 res_ev = MindwmEvent(data=res_obj, type=res_obj.type)
                 if 'traceparent' in headers.keys():
                     res_ev.traceparent = extra_headers['traceparent']
 
                 res_ev.source = f"org.mindwm.{context_name}.knfunc.{func.__name__}"
-                #res_ev.subject = request.headers['ce-source']
                 res_ev.subject = request.headers['ce-source']
                 logger.debug(f'reply with MindwmEvent: {res_ev}')
                 resp = to_response(res_ev, extra_headers)
@@ -249,79 +244,11 @@ def llm_answer(func):
 
 def kafka_cdc(func):
 
-    @app.post("/")
-    async def wrapper(r: Request, response: Response):
+    @event
+    async def wrapper(cdc_obj: KafkaCdc, request: Request = None):
         func_sig = inspect.signature(func)
         xx = [p.annotation for p in func_sig.parameters.values()]
         kwargs = dict(func_sig.parameters)
-        b = await r.body()
-        logger.debug(f"headers: {r.headers}")
-        logger.debug(f"body: {b}")
-        cdc_obj = KafkaCdc.model_validate_json(b)
-        logger.info(f"cdc_obj: {cdc_obj}")
-        if 'traceparent' in r.headers.keys():
-            carrier = r.headers.get('traceparent')
-
-        if 'obj' in kwargs:
-            kwargs['obj'] = cdc_obj
-
-        match cdc_obj.payload.type:
-            case 'relationship':
-                carrier = cdc_obj.payload.traceparent
-            case 'node':
-                if cdc_obj.meta.operation != 'deleted':
-                    carrier = cdc_obj.payload.after.properties.traceparent
-                else:
-                    carrier = cdc_obj.payload.before.properties.traceparent
-
-        @with_trace(carrier=r.headers)
-        @wraps(func)
-        async def inner(**kwargs):
-
-            value = await func(**kwargs)
-
-            logger.debug(f"return value: {value}")
-
-            headers = {}
-            if carrier:
-                headers = {"traceparent": carrier}
-
-            if not value:
-                return Response(status_code=status.HTTP_200_OK,
-                                headers=headers)
-            else:
-                context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
-
-                obj_ev = CloudEvent.make_obj_event(value)
-                match cdc_obj.payload.type:
-                    case "node":
-                        if cdc_obj.meta.operation != 'deleted':
-                            event_type = cdc_obj.payload.after.labels[0].lower(
-                            )
-                        else:
-                            event_type = cdc_obj.payload.before.labels[
-                                0].lower()
-                    case "relationship":
-                        event_type = cdc_obj.payload.label.lower()
-                    case _:
-                        event_type = "UNKNOWN"
-
-                #logger.info(f"ctx: {span.context}")
-                ev = CloudEvent(
-                    id=uuid4().hex,
-                    source=
-                    f"mindwm.{context_name}.graph.{ cdc_obj.payload.type.lower() }",
-                    subject=f"{ cdc_obj.meta.operation }",
-                    type=event_type,
-                    data=obj_ev.model_dump(),
-                    traceparent=carrier)
-
-                headers['content-type'] = 'application/cloudevents+json'
-                logger.debug(f"response headers: {headers}")
-                logger.debug(f"response event: {ev}")
-                return Response(content=ev.model_dump_json(), headers=headers)
-
-        res = await inner(**kwargs)
-        return res
+        logger.info(f"request: {request}")
 
     return wrapper
