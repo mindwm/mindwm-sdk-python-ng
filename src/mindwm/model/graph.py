@@ -300,9 +300,13 @@ class KafkaCdc(BaseModel):
         return self.payload.after.properties
 
     def get_object(self):
-        if type(self.payload) is KafkaCdcRelation:
-            return self.payload
         if self.meta.operation != 'deleted':
-            return self.get_object_after()
+            if type(self.payload) is KafkaCdcRelation:
+                return self.payload.before.properties
+            else:
+                return self.get_object_after()
         else:
-            return self.get_object_before()
+            if type(self.payload) is KafkaCdcRelation:
+                return self.payload.after.properties
+            else:
+                return self.get_object_before()
