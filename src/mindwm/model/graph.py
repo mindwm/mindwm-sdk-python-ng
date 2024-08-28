@@ -3,7 +3,7 @@ from typing import (Annotated, Any, ClassVar, Dict, List, Literal, Optional,
                     TypeVar, Union)
 
 from neontology import BaseNode, BaseRelationship
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .objects import IoDocument
 
@@ -215,6 +215,8 @@ class KafkaCdc(BaseModel):
                        Field(discriminator='type')]
     cdc_schema: KafkaCdcSchema = Field(..., alias='schema')
     type: Literal['dev.knative.kafka.event'] = 'dev.knative.kafka.event'
+
+    model_config = ConfigDict(populate_by_name=True)
 
     def get_object_before(self):
         return self.payload.before.properties
