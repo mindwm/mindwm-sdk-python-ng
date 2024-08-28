@@ -7,7 +7,8 @@ from fastapi import Body, Request, Response
 from mindwm import logging
 from pydantic import BaseModel, Field, model_serializer
 
-from .graph import KafkaCdc
+from .graph import (GraphObjectCreated, GraphObjectDeleted, GraphObjectUpdated,
+                    KafkaCdc)
 from .objects import (IoDocument, LLMAnswer, Ping, Pong, ShowMessage, Touch,
                       TypeText)
 
@@ -20,7 +21,8 @@ class MindwmEvent(BaseModel):
     source: Optional[str] = None
     specversion: str = "1.0"
     data: Annotated[Union[IoDocument, Touch, LLMAnswer, ShowMessage, TypeText,
-                          KafkaCdc, Ping, Pong],
+                          KafkaCdc, GraphObjectCreated, GraphObjectUpdated,
+                          GraphObjectDeleted, Ping, Pong],
                     Body(discriminator="type")]
     type: str
     datacontenttype: Optional[str] = None
