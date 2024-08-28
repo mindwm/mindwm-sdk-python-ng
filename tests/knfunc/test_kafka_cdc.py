@@ -70,8 +70,17 @@ payload = {
     }
 }
 
+iodoc_cdc = {'id': 'partition:0/offset:31', 'key': '"77-0"', 'knativearrivaltime': '2024-08-28T12:52:07.98231106Z', 'knativekafkaoffset': '31','knativekafkapartition': '0', 'partitionkey': '"77-0"', 'source': '/apis/v1/namespaces/context-cyan/kafkasources/context-cyan-cdc-kafkasource#context-cyan-cdc', 'specversion': '1.0', 'subject': 'partition:0#31', 'time': '2024-08-28T12:52:07.638Z', 'type': 'dev.knative.kafka.event', 'data': {'meta': {'timestamp': 1724849527636, 'username': 'neo4j', 'txId': 77, 'txEventId': 0, 'txEventsCount': 1, 'operation': 'created', 'source': {'hostname': 'cyan-neo4j-0'}}, 'payload': {'id': '7', 'before': None, 'after': {'properties': {'output': 'uid=1000(pion) gid=100(users) groups=100(users),1(wheel),26(video),27(dialout),57(networkmanager),67(libvirtd),131(docker),174(input),303(render)', 'input': 'id', 'tracestate': 'subject=id', 'atime': 0, 'traceparent': '00-4b8498bc123ab72f38e9e08c5c365187-516f32a90128c537-01', 'type': 'org.mindwm.v1.iodocument', 'uuid': 'f74f98dd-61c4-406c-9694-cf7cd45e228f','ps1': '❯'}, 'labels': ['IoDocument']}, 'type': 'node'}, 'schema': {'properties': {'output': 'String', 'input': 'String', 'tracestate': 'String', 'atime': 'Long', 'traceparent':'String', 'type': 'String', 'uuid': 'String', 'ps1': 'String'}, 'constraints': []}}}
 
 def test_kafka_cdc():
+
+    response = client.post("/", headers=headers, content=json.dumps(payload))
+    assert response.status_code == 200
+    assert response.headers['traceparent'] != {
+        "traceparent": payload['payload']['after']['properties']['traceparent']
+    }
+
+def test_kafka_iodocument_cdc():
 
     response = client.post("/", headers=headers, content=json.dumps(payload))
     assert response.status_code == 200

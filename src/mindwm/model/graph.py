@@ -2,10 +2,9 @@ from datetime import datetime
 from typing import (Annotated, Any, ClassVar, Dict, List, Literal, Optional,
                     TypeVar, Union)
 
+import mindwm.model.objects as objects
 from neontology import BaseNode, BaseRelationship
 from pydantic import BaseModel, ConfigDict, Field
-
-from .objects import IoDocument
 
 
 class MindwmNode(BaseNode):
@@ -60,7 +59,7 @@ class TmuxPane(MindwmNode):
         'org.mindwm.v1.graph.node.tmux_pane'] = 'org.mindwm.v1.graph.node.tmux_pane'
 
 
-class IoDocument(MindwmNode, IoDocument):
+class IoDocument(MindwmNode, objects.IoDocument):
     __primarylabel__: ClassVar[str] = "IoDocument"
     __primaryproperty__: ClassVar[str] = "uuid"
     uuid: str
