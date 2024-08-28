@@ -1,5 +1,5 @@
 from mindwm import logging
-from mindwm.knfunc.decorators import Request, Response, app, event, kafka_cdc
+from mindwm.knfunc.decorators import Request, Response, app, event
 from mindwm.model.events import from_request, to_response
 from mindwm.model.graph import KafkaCdc
 
