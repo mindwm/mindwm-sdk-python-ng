@@ -75,6 +75,8 @@ async def from_request(request: Request) -> MindwmEvent:
     for k in request.headers.keys():
         if k.startswith('ce'):
             ev_dict[k.lstrip('ce-')] = request.headers.get(k)
+        elif k == 'traceparent':
+            ev_dict[k] = request.headers.get(k)
 
     ev_dict['data'] = obj
     logger.info(f"ev_dict: {ev_dict}")
