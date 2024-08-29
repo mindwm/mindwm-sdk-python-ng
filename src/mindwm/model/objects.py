@@ -68,6 +68,19 @@ class LLMAnswer(MindwmObject):
     type: Literal['org.mindwm.v1.llm_answer'] = 'org.mindwm.v1.llm_answer'
 
 
+class Clipboard(MindwmObject):
+    uuid: str
+    time: int
+    data: str
+    type: Literal['org.mindwm.v1.clipboard'] = 'org.mindwm.v1.clipboard'
+
+
+class Parameter(MindwmObject):
+    key: str
+    val: str
+    type: Literal['org.mindwm.v1.parameter'] = 'org.mindwm.v1.parameter'
+
+
 class Ping(MindwmObject):
     uuid: str = Field(description="uniq action id",
                       default_factory=lambda: uuid4().hex)
@@ -105,3 +118,29 @@ class TypeText(Action):
     description: str
     snippet: str
     type: Literal['org.mindwm.v1.type_text'] = 'org.mindwm.v1.type_text'
+
+
+class User(MindwmObject):
+    username: str
+    type: Literal['org.mindwm.v1.user'] = 'org.mindwm.v1.user'
+
+
+class Host(MindwmObject):
+    hostname: str
+    type: Literal['org.mindwm.v1.host'] = 'org.mindwm.v1.host'
+
+
+class Tmux(MindwmObject):
+    # TODO: define a proper validator
+    socket_path: str  # f"{username}@{hostname}/{socket_path}"
+    type: Literal['org.mindwm.v1.tmux'] = 'org.mindwm.v1.tmux'
+
+
+class TmuxSession(MindwmObject):
+    name: str  # f"{username}@{hostname}/{socket_path}:{tmux_session}"
+    type: Literal['org.mindwm.v1.tmux_session'] = 'org.mindwm.v1.tmux_session'
+
+
+class TmuxPane(MindwmObject):
+    title: str  # f"{username}@{hostname}/{socket_path}:{tmux_session}%{pane}"
+    type: Literal['org.mindwm.v1.tmux_pane'] = 'org.mindwm.v1.tmux_pane'
