@@ -88,6 +88,42 @@ async def from_request(request: Request) -> MindwmEvent:
     return ev
 
 
+def from_response(response: Response) -> MindwmEvent:
+    obj = response.json()
+    ev_dict = {}
+    for k in response.headers.keys():
+        if k.startswith('ce'):
+            ev_dict[k.lstrip('ce-')] = response.headers.get(k)
+
+    ev_dict['data'] = obj
+    logger.info(f"ev_dict: {ev_dict}")
+    # TODO: (@omgbebebe) should we copy a type from obj?
+    if 'type' in obj.keys():
+        ev_dict['type'] = obj['type']
+    else:
+        obj['type'] = ev_dict['type']
+
+    ev = MindwmEvent.model_validate(ev_dict)
+    return ev
+
+
+def to_request(ev: MindwmEvent, extra_headers: dict = {}):
+    body = ev.data
+    headers = {}
+    ev_dict = ev.model_dump()
+    to_headers = [k for k in ev_dict.keys() if k not in ['data']]
+    for h in to_headers:
+        if h == 'traceparent':
+            headers['traceparent'] = ev_dict[h]
+        else:
+            headers[f"CE-{h.capitalize()}"] = str(ev_dict[h])
+
+    #headers['content-type'] = 'application/cloudevents+json'
+    headers['content-type'] = 'application/json'
+    headers.update(extra_headers)
+    return (headers, body.model_dump_json())
+
+
 def to_response(ev: MindwmEvent, extra_headers: dict = {}) -> (Response):
     body = ev.data
     headers = {}
