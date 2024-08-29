@@ -32,6 +32,21 @@ models = {
                      title="some title",
                      description="some description",
                      snippet="ip r sh"),
+    "clipboard":
+    objects.Clipboard(uuid=uuid4().hex, time=12345,
+                      data="some clipboard data"),
+    "parameter":
+    objects.Parameter(key="some_key", val="some value"),
+    "user":
+    objects.User(username="alice"),
+    "host":
+    objects.Host(hostname="host.local"),
+    "tmux":
+    objects.Tmux(socket_path="alice@host.local/tmp/tmux-1000/default"),
+    "tmux_session":
+    objects.TmuxSession(name="alice@host.local/tmp/tmux-1000/default:23"),
+    "tmux_pane":
+    objects.TmuxPane(title="alice@host.local/tmp/tmux-1000/default:23%36"),
 }
 
 

@@ -12,49 +12,42 @@ class MindwmNode(BaseNode):
     created: Optional[datetime] = None
     merged: Optional[datetime] = None
     traceparent: Optional[str] = None
-    type: str
     #    atime: datetime = Field(
     #    default_factory=datetime.now
     #)
 
 
-class User(MindwmNode):
+class User(MindwmNode, objects.User):
     __primarylabel__: ClassVar[str] = "User"
     __primaryproperty__: ClassVar[str] = "username"
-    username: str
     type: Literal[
         'org.mindwm.v1.graph.node.user'] = 'org.mindwm.v1.graph.node.user'
 
 
-class Host(MindwmNode):
+class Host(MindwmNode, objects.Host):
     __primarylabel__: ClassVar[str] = "Host"
     __primaryproperty__: ClassVar[str] = "hostname"
-    hostname: str
     type: Literal[
         'org.mindwm.v1.graph.node.host'] = 'org.mindwm.v1.graph.node.host'
 
 
-class Tmux(MindwmNode):
+class Tmux(MindwmNode, objects.Tmux):
     __primarylabel__: ClassVar[str] = "Tmux"
     __primaryproperty__: ClassVar[str] = "socket_path"
-    # TODO: define a proper validator
-    socket_path: str  # f"{username}@{hostname}/{socket_path}"
     type: Literal[
         'org.mindwm.v1.graph.node.tmux'] = 'org.mindwm.v1.graph.node.tmux'
 
 
-class TmuxSession(MindwmNode):
+class TmuxSession(MindwmNode, objects.TmuxSession):
     __primarylabel__: ClassVar[str] = "TmuxSession"
     __primaryproperty__: ClassVar[str] = "name"
-    name: str  # f"{username}@{hostname}/{socket_path}:{tmux_session}"
     type: Literal[
         'org.mindwm.v1.graph.node.tmux_session'] = 'org.mindwm.v1.graph.node.tmux_session'
 
 
-class TmuxPane(MindwmNode):
+class TmuxPane(MindwmNode, objects.TmuxPane):
     __primarylabel__: ClassVar[str] = "TmuxPane"
     __primaryproperty__: ClassVar[str] = "title"
-    title: str  # f"{username}@{hostname}/{socket_path}:{tmux_session}%{pane}"
     type: Literal[
         'org.mindwm.v1.graph.node.tmux_pane'] = 'org.mindwm.v1.graph.node.tmux_pane'
 
@@ -62,26 +55,20 @@ class TmuxPane(MindwmNode):
 class IoDocument(MindwmNode, objects.IoDocument):
     __primarylabel__: ClassVar[str] = "IoDocument"
     __primaryproperty__: ClassVar[str] = "uuid"
-    uuid: str
     type: Literal[
         'org.mindwm.v1.graph.node.iodocument'] = 'org.mindwm.v1.graph.node.iodocument'
 
 
-class Clipboard(MindwmNode):
+class Clipboard(MindwmNode, objects.Clipboard):
     __primarylabel__: ClassVar[str] = "Clipboard"
     __primaryproperty__: ClassVar[str] = "uuid"
-    uuid: str
-    time: int
-    data: str
     type: Literal[
         'org.mindwm.v1.graph.node.clipboard'] = 'org.mindwm.v1.graph.node.clipboard'
 
 
-class Parameter(MindwmNode):
+class Parameter(MindwmNode, objects.Parameter):
     __primarylabel__: ClassVar[str] = "Parameter"
     __primaryproperty__: ClassVar[str] = "key"
-    key: str
-    val: str
     type: Literal[
         'org.mindwm.v1.graph.node.parameter'] = 'org.mindwm.v1.graph.node.parameter'
 
