@@ -39,11 +39,11 @@ def test_model_dump_validate():
     for k, v in models.items():
         x = v.model_dump()
         y = objects.MindwmObject.model_validate(x, strict=True)
-        assert (x != y)
+        assert v == y
 
 
 def test_model_dump_json_validate():
     for k, v in models.items():
         x = v.model_dump_json()
         y = objects.MindwmObject.model_validate_json(x, strict=True)
-        assert (x != y)
+        assert v == y
