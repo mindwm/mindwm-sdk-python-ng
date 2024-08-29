@@ -4,7 +4,7 @@ from typing import (Annotated, Any, ClassVar, Dict, List, Literal, Optional,
 
 import mindwm.model.objects as objects
 from neontology import BaseNode, BaseRelationship
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class MindwmNode(BaseNode):
@@ -42,14 +42,14 @@ class TmuxSession(MindwmNode, objects.TmuxSession):
     __primarylabel__: ClassVar[str] = "TmuxSession"
     __primaryproperty__: ClassVar[str] = "name"
     type: Literal[
-        'org.mindwm.v1.graph.node.tmux_session'] = 'org.mindwm.v1.graph.node.tmux_session'
+        'org.mindwm.v1.graph.node.tmuxsession'] = 'org.mindwm.v1.graph.node.tmuxsession'
 
 
 class TmuxPane(MindwmNode, objects.TmuxPane):
     __primarylabel__: ClassVar[str] = "TmuxPane"
     __primaryproperty__: ClassVar[str] = "title"
     type: Literal[
-        'org.mindwm.v1.graph.node.tmux_pane'] = 'org.mindwm.v1.graph.node.tmux_pane'
+        'org.mindwm.v1.graph.node.tmuxpane'] = 'org.mindwm.v1.graph.node.tmuxpane'
 
 
 class IoDocument(MindwmNode, objects.IoDocument):
@@ -57,6 +57,12 @@ class IoDocument(MindwmNode, objects.IoDocument):
     __primaryproperty__: ClassVar[str] = "uuid"
     type: Literal[
         'org.mindwm.v1.graph.node.iodocument'] = 'org.mindwm.v1.graph.node.iodocument'
+    # TODO: (@omgbebebe) need to define a proper validator for
+    # relationship validation which fill only primaryproperty field
+    # and fail validation iodocument_has_user
+    input: Optional[str] = None
+    output: Optional[str] = None
+    ps1: Optional[str] = None
 
 
 class Clipboard(MindwmNode, objects.Clipboard):
@@ -98,27 +104,27 @@ class HostHasTmux(MindwmRelationship):
 
 
 class TmuxHasTmuxSession(MindwmRelationship):
-    __relationshiptype__: ClassVar[str] = "HAS_TMUX_SESSION"
+    __relationshiptype__: ClassVar[str] = "HAS_TMUXSESSION"
     source: Tmux
     target: TmuxSession
     type: Literal[
-        'org.mindwm.v1.graph.relationship.tmux_has_session'] = 'org.mindwm.v1.graph.relationship.tmux_has_session'
+        'org.mindwm.v1.graph.relationship.tmux_has_tmuxsession'] = 'org.mindwm.v1.graph.relationship.tmux_has_tmuxsession'
 
 
 class TmuxSessionHasTmuxPane(MindwmRelationship):
-    __relationshiptype__: ClassVar[str] = "HAS_TMUX_PANE"
+    __relationshiptype__: ClassVar[str] = "HAS_TMUXPANE"
     source: TmuxSession
     target: TmuxPane
     type: Literal[
-        'org.mindwm.v1.graph.relationship.tmux_session_has_pane'] = 'org.mindwm.v1.graph.relationship.tmux_session_has_pane'
+        'org.mindwm.v1.graph.relationship.tmuxsession_has_tmuxpane'] = 'org.mindwm.v1.graph.relationship.tmuxsession_has_tmuxpane'
 
 
 class TmuxPaneHasIoDocument(MindwmRelationship):
-    __relationshiptype__: ClassVar[str] = "HAS_IO_DOCUMENT"
+    __relationshiptype__: ClassVar[str] = "HAS_IODOCUMENT"
     source: TmuxPane
     target: IoDocument
     type: Literal[
-        'org.mindwm.v1.graph.relationship.tmux_pane_has_iodocument'] = 'org.mindwm.v1.graph.relationship.tmux_pane_has_iodocument'
+        'org.mindwm.v1.graph.relationship.tmuxpane_has_iodocument'] = 'org.mindwm.v1.graph.relationship.tmuxpane_has_iodocument'
 
 
 class HostHasClipboard(MindwmRelationship):
@@ -174,7 +180,7 @@ class TmuxSessionHasParameter(MindwmRelationship):
     source: TmuxSession
     target: Parameter
     type: Literal[
-        'org.mindwm.v1.graph.relationship.tmux_session_has_parameter'] = 'org.mindwm.v1.graph.relationship.tmux_session_has_parameter'
+        'org.mindwm.v1.graph.relationship.tmuxsession_has_parameter'] = 'org.mindwm.v1.graph.relationship.tmuxsession_has_parameter'
 
 
 class TmuxPaneHasParameter(MindwmRelationship):
@@ -182,7 +188,7 @@ class TmuxPaneHasParameter(MindwmRelationship):
     source: TmuxPane
     target: Parameter
     type: Literal[
-        'org.mindwm.v1.graph.relationship.tmux_pane_has_parameter'] = 'org.mindwm.v1.graph.relationship.tmux_pane_has_parameter'
+        'org.mindwm.v1.graph.relationship.tmuxpane_has_parameter'] = 'org.mindwm.v1.graph.relationship.tmuxpane_has_parameter'
 
 
 # cloudvent
@@ -199,7 +205,8 @@ ChangedObject = Annotated[Union[User, Host, Tmux, TmuxSession, TmuxPane,
                                 HostHasParameter, TmuxHasTmuxSession,
                                 TmuxHasParameter, TmuxSessionHasTmuxPane,
                                 TmuxSessionHasParameter, TmuxPaneHasIoDocument,
-                                TmuxPaneHasParameter],
+                                TmuxPaneHasParameter, IoDocumentHasUser,
+                                TmuxPaneHasIoDocument, UserHasTmux],
                           Field(discriminator='type')]
 
 

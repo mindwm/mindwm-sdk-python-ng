@@ -1,89 +1,157 @@
 import json
 
+import mindwm.model.events as events
+import mindwm.model.graph as graph
+import mindwm.model.objects as objects
 from fastapi.testclient import TestClient
 
 from .kafka_cdc import app
 
 client = TestClient(app)
 
-headers = {
-    "ce-id": "partition:0/offset:52",
-    "ce-key": "100-0",
-    "ce-knativearrivaltime": "2024-08-27T08:13:50.963498004Z",
-    "ce-knativekafkaoffset": "52",
-    "ce-knativekafkapartition": "0",
-    "ce-partitionkey": "100-0",
-    "ce-source":
-    "/apis/v1/namespaces/context-cyan/kafkasources/context-cyan-cdc-kafkasource#context-cyan-cdc",
-    "ce-specversion": "1.0",
-    "ce-subject": "partition:0#52",
-    "ce-time": "2024-08-27T08:13:50.953Z",
-    "ce-type": "dev.knative.kafka.event",
-    "traceparent": "00-ef3d91a5a7326b22aaff9cbd1ecb7b95-6ab8abe47df00f48-01"
+kafka_cdc_events = {
+    "user":
+    graph.KafkaCdc(
+        meta=graph.KafkaCdcMeta(timestamp=1724929112463,
+                                username='neo4j',
+                                txId=166,
+                                txEventId=0,
+                                txEventsCount=1,
+                                operation='updated',
+                                source={'hostname': 'cyan-neo4j-0'}),
+        payload=graph.KafkaCdcNode(
+            id=0,
+            type='node',
+            before=graph.KafkaCdcNodeData(properties=graph.User(
+                traceparent=
+                '00-0244c99bf5fadc62cf25591940f1ae07-3d3c5f3dfc0911ab-01',
+                tracestate=None,
+                username='pion',
+                type='org.mindwm.v1.graph.node.user',
+                created=None,
+                merged=None,
+                atime=0),
+                                          labels=['User']),
+            after=graph.KafkaCdcNodeData(properties=graph.User(
+                traceparent=
+                '00-16d9962444064cca36566af09e332904-af337a466f860a0c-01',
+                tracestate=None,
+                username='pion',
+                type='org.mindwm.v1.graph.node.user',
+                created=None,
+                merged=None,
+                atime=0),
+                                         labels=['User'])),
+        cdc_schema=graph.KafkaCdcSchema(properties={
+            'atime': 'Long',
+            'traceparent': 'String',
+            'type': 'String',
+            'username': 'String'
+        },
+                                        constraints=[{
+                                            'label': 'User',
+                                            'properties': ['username'],
+                                            'type': 'UNIQUE'
+                                        }]),
+        type='dev.knative.kafka.event'),
+    "user_has_host":
+    graph.KafkaCdc(
+        meta=graph.KafkaCdcMeta(timestamp=1724929112908,
+                                username='neo4j',
+                                txId=172,
+                                txEventId=0,
+                                txEventsCount=1,
+                                operation='updated',
+                                source={'hostname': 'cyan-neo4j-0'}),
+        payload=graph.KafkaCdcRelation(
+            id=0,
+            start=graph.KafkaCdcRelNode(id='0',
+                                        labels=['User'],
+                                        ids={'username': 'pion'}),
+            end=graph.KafkaCdcRelNode(id='1',
+                                      labels=['Host'],
+                                      ids={'hostname': 'wrkeys'}),
+            before=graph.KafkaCdcRelProp(
+                properties={
+                    'traceparent':
+                    '00-0244c99bf5fadc62cf25591940f1ae07-3d3c5f3dfc0911ab-01',
+                    'type': 'org.mindwm.v1.graph.relationship.user_has_host'
+                }),
+            after=graph.KafkaCdcRelProp(
+                properties={
+                    'traceparent':
+                    '00-16d9962444064cca36566af09e332904-af337a466f860a0c-01',
+                    'type': 'org.mindwm.v1.graph.relationship.user_has_host'
+                }),
+            label='HAS_HOST',
+            type='relationship',
+            traceparent=None),
+        cdc_schema=graph.KafkaCdcSchema(properties={
+            'traceparent': 'String',
+            'type': 'String'
+        },
+                                        constraints=[{
+                                            'label': 'User',
+                                            'properties': ['username'],
+                                            'type': 'UNIQUE'
+                                        }, {
+                                            'label': 'Host',
+                                            'properties': ['hostname'],
+                                            'type': 'UNIQUE'
+                                        }]),
+        type='dev.knative.kafka.event'),
+    "iodocument_has_user":
+    graph.KafkaCdc(
+        meta=graph.KafkaCdcMeta(timestamp=1724935151817,
+                                username='neo4j',
+                                txId=191,
+                                txEventId=0,
+                                txEventsCount=1,
+                                operation='created',
+                                source={'hostname': 'cyan-neo4j-0'}),
+        payload=graph.KafkaCdcRelation(
+            id=10,
+            start=graph.KafkaCdcRelNode(
+                id='7',
+                labels=['IoDocument'],
+                ids={'uuid': 'f2bc024a-149f-4d49-9fb4-59fcc8239771'}),
+            end=graph.KafkaCdcRelNode(id='0',
+                                      labels=['User'],
+                                      ids={'username': 'pion'}),
+            before=None,
+            after=graph.KafkaCdcRelProp(
+                properties={
+                    'traceparent':
+                    '00-7f47a329488353fe16d96b191c2a935c-65f4f48c4dda62e9-01',
+                    'type':
+                    'org.mindwm.v1.graph.relationship.iodocument_has_user'
+                }),
+            label='HAS_USER',
+            type='relationship',
+            traceparent=None),
+        cdc_schema=graph.KafkaCdcSchema(properties={
+            'traceparent': 'String',
+            'type': 'String'
+        },
+                                        constraints=[{
+                                            'label': 'IoDocument',
+                                            'properties': ['uuid'],
+                                            'type': 'UNIQUE'
+                                        }, {
+                                            'label': 'User',
+                                            'properties': ['username'],
+                                            'type': 'UNIQUE'
+                                        }]),
+        type='dev.knative.kafka.event'),
 }
 
-payload = {
-    "meta": {
-        "timestamp": 1724746430950,
-        "username": "neo4j",
-        "txId": 100,
-        "txEventId": 0,
-        "txEventsCount": 1,
-        "operation": "updated",
-        "source": {
-            "hostname": "cyan-neo4j-0"
-        }
-    },
-    "payload": {
-        "id": "0",
-        "before": {
-            "properties": {
-                "atime": 0,
-                "traceparent":
-                "00-db52d62377f5b810f0349eefc611f87d-93e0c542cf591bd9-01",
-                "username": "pion"
-            },
-            "labels": ["User"]
-        },
-        "after": {
-            "properties": {
-                "atime": 0,
-                "traceparent":
-                "00-b117187d5c326ad085b053bbb5ed8002-034b60237f636967-01",
-                "username": "pion"
-            },
-            "labels": ["User"]
-        },
-        "type": "node"
-    },
-    "schema": {
-        "properties": {
-            "atime": "Long",
-            "traceparent": "String",
-            "username": "String"
-        },
-        "constraints": [{
-            "label": "User",
-            "properties": ["username"],
-            "type": "UNIQUE"
-        }]
-    }
-}
-
-iodoc_cdc = {'id': 'partition:0/offset:31', 'key': '"77-0"', 'knativearrivaltime': '2024-08-28T12:52:07.98231106Z', 'knativekafkaoffset': '31','knativekafkapartition': '0', 'partitionkey': '"77-0"', 'source': '/apis/v1/namespaces/context-cyan/kafkasources/context-cyan-cdc-kafkasource#context-cyan-cdc', 'specversion': '1.0', 'subject': 'partition:0#31', 'time': '2024-08-28T12:52:07.638Z', 'type': 'dev.knative.kafka.event', 'data': {'meta': {'timestamp': 1724849527636, 'username': 'neo4j', 'txId': 77, 'txEventId': 0, 'txEventsCount': 1, 'operation': 'created', 'source': {'hostname': 'cyan-neo4j-0'}}, 'payload': {'id': '7', 'before': None, 'after': {'properties': {'output': 'uid=1000(pion) gid=100(users) groups=100(users),1(wheel),26(video),27(dialout),57(networkmanager),67(libvirtd),131(docker),174(input),303(render)', 'input': 'id', 'tracestate': 'subject=id', 'atime': 0, 'traceparent': '00-4b8498bc123ab72f38e9e08c5c365187-516f32a90128c537-01', 'type': 'org.mindwm.v1.iodocument', 'uuid': 'f74f98dd-61c4-406c-9694-cf7cd45e228f','ps1': '❯'}, 'labels': ['IoDocument']}, 'type': 'node'}, 'schema': {'properties': {'output': 'String', 'input': 'String', 'tracestate': 'String', 'atime': 'Long', 'traceparent':'String', 'type': 'String', 'uuid': 'String', 'ps1': 'String'}, 'constraints': []}}}
 
 def test_kafka_cdc():
-
-    response = client.post("/", headers=headers, content=json.dumps(payload))
-    assert response.status_code == 200
-    assert response.headers['traceparent'] != {
-        "traceparent": payload['payload']['after']['properties']['traceparent']
-    }
-
-def test_kafka_iodocument_cdc():
-
-    response = client.post("/", headers=headers, content=json.dumps(payload))
-    assert response.status_code == 200
-    assert response.headers['traceparent'] != {
-        "traceparent": payload['payload']['after']['properties']['traceparent']
-    }
+    for k, v in kafka_cdc_events.items():
+        ev = events.MindwmEvent(data=v, type=v.type)
+        mindwm_cdc = graph.GraphObjectChanged.from_kafka_cdc(v)
+        (headers, body) = events.to_request(ev)
+        response = client.post("/", headers=headers, content=body)
+        assert response.status_code == 200
+        resp = events.from_response(response)
+        resp_cdc = resp.data
