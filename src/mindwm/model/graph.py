@@ -206,19 +206,19 @@ ChangedObject = Annotated[Union[User, Host, Tmux, TmuxSession, TmuxPane,
 class GraphObjectCreated(BaseModel):
     type: Literal[
         'org.mindwm.v1.graph.created'] = 'org.mindwm.v1.graph.created'
-    properties: ChangedObject
+    obj: ChangedObject
 
 
 class GraphObjectUpdated(BaseModel):
     type: Literal[
         'org.mindwm.v1.graph.updated'] = 'org.mindwm.v1.graph.updated'
-    properties: ChangedObject
+    obj: ChangedObject
 
 
 class GraphObjectDeleted(BaseModel):
     type: Literal[
         'org.mindwm.v1.graph.deleted'] = 'org.mindwm.v1.graph.deleted'
-    properties: ChangedObject
+    obj: ChangedObject
 
 
 # kafka-source cdc events
@@ -297,3 +297,50 @@ class KafkaCdc(BaseModel):
                 return self.payload.after.properties
             else:
                 return self.get_object_before()
+
+
+class GraphObjectChanged(BaseModel):
+
+    @classmethod
+    def from_kafka_cdc(self, cdc: KafkaCdc):
+        match cdc.payload.type:
+            case 'node':
+                if cdc.meta.operation == 'deleted':
+                    obj_payload = cdc.payload.before
+                else:
+                    obj_payload = cdc.payload.after
+
+                label = obj_payload.labels[0].lower()
+                props = obj_payload.properties
+                obj_dict = {
+                    "type": f"org.mindwm.v1.graph.{cdc.meta.operation}",
+                    "obj": props.model_dump(),
+                }
+
+            case 'relationship':
+                start_label = cdc.payload.start.labels[0].lower()
+                start_ids = cdc.payload.start.ids
+                start_node = {
+                    "type": f"org.mindwm.v1.graph.node.{start_label}"
+                } | start_ids
+                end_label = cdc.payload.end.labels[0].lower()
+                end_ids = cdc.payload.end.ids
+                end_node = {
+                    "type": f"org.mindwm.v1.graph.node.{end_label}"
+                } | end_ids
+                obj_type = f"org.mindwm.v1.graph.relationship.{start_label}_{cdc.payload.label.lower()}"
+                obj_dict = {
+                    "type": f"org.mindwm.v1.graph.{cdc.meta.operation}",
+                    "obj": {
+                        "source": start_node,
+                        "target": end_node,
+                        "type": obj_type,
+                    }
+                }
+        match cdc.meta.operation:
+            case 'created':
+                return GraphObjectCreated.model_validate(obj_dict)
+            case 'updated':
+                return GraphObjectUpdated.model_validate(obj_dict)
+            case 'deleted':
+                return GraphObjectDeleted.model_validate(obj_dict)
