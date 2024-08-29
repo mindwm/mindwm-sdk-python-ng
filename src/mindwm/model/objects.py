@@ -1,13 +1,35 @@
-from typing import Dict, List, Literal, Optional
+from typing import (Annotated, Any, ClassVar, Dict, List, Literal, Optional,
+                    Union)
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter, model_validator
+from pydantic_core.core_schema import ValidatorFunctionWrapHandler
 
 
 class MindwmObject(BaseModel):
+    _subclasses: ClassVar[dict[str, type[Any]]] = {}
+    _discriminating_type_adapter: ClassVar[TypeAdapter]
     traceparent: Optional[str] = None
     tracestate: Optional[str] = None
-    type: str
+
+    @model_validator(mode='wrap')
+    @classmethod
+    def _parse_into_subclass(
+            cls, v: Any,
+            handler: ValidatorFunctionWrapHandler) -> 'MindwmObject':
+        if cls is MindwmObject:
+            return MindwmObject._discriminating_type_adapter.validate_python(v)
+        return handler(v)
+
+    @classmethod
+    def __pydantic_init_subclass__(cls, **kwargs):
+        MindwmObject._subclasses[cls.model_fields['type'].default] = cls
+
+        # The following will create a new type adapter every time a new subclass is created,
+        # which is fine if there aren't that many classes (as far as performance goes)
+        MindwmObject._discriminating_type_adapter = TypeAdapter(
+            Annotated[Union[tuple(MindwmObject._subclasses.values())],
+                      Field(discriminator='type')])
 
     def to_json(self):
         return self.model_dump_json()
@@ -43,7 +65,7 @@ class LLMAnswer(MindwmObject):
     iodoc_uuid: str = Field(description='An original IoDocument uuid')
     codesnippet: str
     description: str
-    type: Literal['lorg.mindwm.v1.lmanswer'] = 'org.mindwm.v1.llmanswer'
+    type: Literal['org.mindwm.v1.llm_answer'] = 'org.mindwm.v1.llm_answer'
 
 
 class Ping(MindwmObject):
@@ -68,17 +90,18 @@ class Action(MindwmObject):
         description=
         "non-empty list of targets to execute the action on. I.e. identifier of tmux pane"
     )
-    type: str
+    type: Literal[
+        'org.mindwm.v1.abstract_action'] = 'org.mindwm.v1.abstract_action'
 
 
 class ShowMessage(Action):
     title: str
     message: str
-    type: Literal['org.mindwm.v1.showmessage'] = 'org.mindwm.v1.showmessage'
+    type: Literal['org.mindwm.v1.show_message'] = 'org.mindwm.v1.show_message'
 
 
 class TypeText(Action):
     title: str
     description: str
     snippet: str
-    type: Literal['org.mindwm.v1.typetext'] = 'org.mindwm.v1.typetext'
+    type: Literal['org.mindwm.v1.type_text'] = 'org.mindwm.v1.type_text'
