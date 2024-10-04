@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from mindwm import logging
 from mindwm.model.events import MindwmEvent, from_request, to_response
 from mindwm.model.graph import KafkaCdc
-from mindwm.model.objects import IoDocument, LLMAnswer, Touch
+from mindwm.model.objects import IoDocument, LLMAnswer, Touch, Clipboard
 from neontology import auto_constrain, init_neontology
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
@@ -206,6 +206,65 @@ def llm_answer(func):
         if 'answer' in kwargs:
             answer_ev = LLMAnswerEvent.model_validate_json(b)
             kwargs['answer'] = answer_ev.data
+
+        @with_trace(carrier=r.headers)
+        @wraps(func)
+        async def inner(**kwargs):
+            value = await func(**kwargs)
+            logger.debug(f"return value: {value}")
+            logger.info(f"inner")
+            carrier = None
+            if 'traceparent' in r.headers.keys():
+                carrier = r.headers.get('traceparent')
+                value.traceparent = carrier
+                value.traceparent = carrier
+
+            if 'tracestate' in r.headers.keys():
+                value.tracestate = r.headers.get('tracestate')
+
+            logger.debug(f"with injected traces: {value}")
+            if not value:
+                return Response(status_code=status.HTTP_200_OK)
+            else:
+                context_name = os.environ.get('CONTEXT_NAME', 'NO_CONTEXT')
+                obj_ev = CloudEvent.make_obj_event(value)
+                attributes = {
+                    "id": uuid4().hex,
+                    "source": f"mindwm.{context_name}.knfunc.{func.__name__}",
+                    #"subject": f"{source}.feedback",
+                    # TODO: fix the subject to variant from above when we implement new naming convention
+                    "subject": subject,
+                    "type": obj_ev.type,
+                    #"ce-traceparent": r.headers.get('ce-traceparent')
+                }
+                data = obj_ev.model_dump()
+                event = CE(attributes, data)
+                headers, body = to_structured(event)
+                #headers['content-type'] = 'application/cloudevents+json'
+                logger.debug(f"response: {headers}\n{body}")
+                response.headers.update(headers)
+                return JSONResponse(content=json.loads(body), headers=headers)
+
+        res = await inner(**kwargs)
+        return res
+
+    return wrapper
+
+def clipboard(func):
+
+    @app.post("/")
+    async def wrapper(r: Request, response: Response):
+        func_sig = inspect.signature(func)
+        xx = [p.annotation for p in func_sig.parameters.values()]
+        kwargs = dict(func_sig.parameters)
+        b = await r.body()
+        logger.debug(f"request headers: {r.headers}\nbody: {b}")
+        uuid = r.headers.get('ce-id')
+        source = r.headers.get('ce-source')
+        subject = r.headers.get('ce-subject')
+        if 'clipboard' in kwargs:
+            clipboard = Clipboard.model_validate_json(b)
+            kwargs['answer'] = clipboard
 
         @with_trace(carrier=r.headers)
         @wraps(func)
