@@ -266,7 +266,6 @@ def clipboard(func):
             clipboard = Clipboard.model_validate_json(b)
             kwargs['answer'] = clipboard
 
-        @with_trace(carrier=r.headers)
         @wraps(func)
         async def inner(**kwargs):
             value = await func(**kwargs)
