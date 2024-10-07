@@ -264,7 +264,6 @@ def clipboard(func):
         subject = r.headers.get('ce-subject')
         if 'clipboard' in kwargs:
             clipboard = Clipboard.model_validate_json(b)
-            kwargs['answer'] = clipboard
 
         @wraps(func)
         async def inner(**kwargs):
