@@ -271,13 +271,13 @@ def clipboard(func):
             logger.debug(f"return value: {value}")
             logger.info(f"inner")
             carrier = None
-            if 'traceparent' in r.headers.keys():
-                carrier = r.headers.get('traceparent')
-                value.traceparent = carrier
-                value.traceparent = carrier
-
-            if 'tracestate' in r.headers.keys():
-                value.tracestate = r.headers.get('tracestate')
+            # if 'traceparent' in r.headers.keys():
+            #     carrier = r.headers.get('traceparent')
+            #     value.traceparent = carrier
+            #     value.traceparent = carrier
+            #
+            # if 'tracestate' in r.headers.keys():
+            #     value.tracestate = r.headers.get('tracestate')
 
             logger.debug(f"with injected traces: {value}")
             if not value:
