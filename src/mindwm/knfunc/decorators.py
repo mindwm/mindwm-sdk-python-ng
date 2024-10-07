@@ -263,7 +263,18 @@ def clipboard(func):
         source = r.headers.get('ce-source')
         subject = r.headers.get('ce-subject')
         if 'clipboard' in kwargs:
-            clipboard = Clipboard.model_validate_json(b)
+            kwargs['clipboard'] = Clipboard.model_validate_json(b)
+        if 'uuid' in kwargs:
+            kwargs['uuid'] = uuid
+        if 'graph' in kwargs:
+            try:
+                init_neontology()
+                auto_constrain()
+            except Exception as e:
+                logger.error("failed to initialize Neontology", e)
+
+            kwargs['graph'] = graphModel
+
 
         @wraps(func)
         async def inner(**kwargs):
