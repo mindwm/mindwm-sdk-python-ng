@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, model_serializer
 from .graph import (GraphObjectCreated, GraphObjectDeleted, GraphObjectUpdated,
                     KafkaCdc)
 from .objects import (IoDocument, LLMAnswer, Ping, Pong, ShowMessage, Touch,
-                      TypeText)
+                      TypeText, Clipboard)
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class MindwmEvent(BaseModel):
     specversion: str = "1.0"
     data: Annotated[Union[IoDocument, Touch, LLMAnswer, ShowMessage, TypeText,
                           KafkaCdc, GraphObjectCreated, GraphObjectUpdated,
-                          GraphObjectDeleted, Ping, Pong],
+                          GraphObjectDeleted, Ping, Pong, Clipboard],
                     Body(discriminator="type")]
     type: str
     datacontenttype: Optional[str] = None

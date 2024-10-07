@@ -262,10 +262,32 @@ def clipboard(func):
         uuid = r.headers.get('ce-id')
         source = r.headers.get('ce-source')
         subject = r.headers.get('ce-subject')
+        ce_type = r.headers.get('ce-type')
+        # TODO(@metacoma) fix usage
+        ce_traceparent = r.headers.get('traceparent')
+
+        ev = await from_request(r)
+        logger.info(f"event: {ev}")
+
+        clipboard_ev = Clipboard.model_validate_json(b)
+
+        user = "bebebeka"
+        host = "laptop"
+
         if 'clipboard' in kwargs:
-            kwargs['clipboard'] = Clipboard.model_validate_json(b)
+            kwargs['clipboard'] = ev
+        if 'traceparent' in kwargs:
+            kwargs['traceparent'] = ce_traceparent
         if 'uuid' in kwargs:
             kwargs['uuid'] = uuid
+        if 'time' in kwargs:
+            kwargs['time'] = ev.data.time
+        if 'data' in kwargs:
+            kwargs['data'] = ev.data.data
+        if 'username' in kwargs:
+            kwargs['username'] = user
+        if 'hostname' in kwargs:
+            kwargs['hostname'] = host
         if 'graph' in kwargs:
             try:
                 init_neontology()
