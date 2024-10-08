@@ -68,6 +68,9 @@ class IoDocument(MindwmNode, objects.IoDocument):
 class Clipboard(MindwmNode, objects.Clipboard):
     __primarylabel__: ClassVar[str] = "Clipboard"
     __primaryproperty__: ClassVar[str] = "uuid"
+    data: Optional[str] = None
+    time: Optional[int] = None
+    uuid: Optional[str] = None
     type: Literal[
         'org.mindwm.v1.graph.node.clipboard'] = 'org.mindwm.v1.graph.node.clipboard'
 
