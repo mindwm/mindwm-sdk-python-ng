@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/24.05";
-    #nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     neontology-py.url = "github:mindwm/neontology";
     neontology-py.inputs.nixpkgs.follows = "nixpkgs";
@@ -21,7 +21,18 @@
       systems = [ "x86_64-linux" "aarch64-linux" ];
       perSystem = { config, self', inputs', pkgs, system, ... }:
       let
-        my_python = pkgs.python3.withPackages (ps: with ps; [
+        packageOverrides = self: super: {
+          magika = super.magika.overridePythonAttrs (old: rec {
+            version = "0.5.0";
+            src = super.fetchPypi {
+              pname = "magika";
+              inherit version;
+              hash = "sha256-r6C7iDCG/o3JEvweQGb4upr+LuHvmNtkwtduZGehCsc=";
+            };
+          });
+        };
+        python = pkgs.python3.override { inherit packageOverrides; };
+        my_python = python.withPackages (ps: with ps; [
           inputs.neontology-py.packages.${system}.default
           inputs.strictjson-py.packages.${system}.default
           pydantic dateutil urllib3
@@ -34,6 +45,7 @@
           pyyaml
 	  openai
 	  cloudevents deprecation
+          magika
         ]);
         project = pkgs.callPackage ./package.nix {
           my_python = pkgs.python3;
