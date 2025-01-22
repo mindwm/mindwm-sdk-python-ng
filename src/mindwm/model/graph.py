@@ -91,7 +91,7 @@ class MindwmRelationship(BaseRelationship):
 
 
 class UserHasHost(MindwmRelationship):
-    f_relationshiptype__: ClassVar[str] = "HAS_HOST"
+    __relationshiptype__: ClassVar[str] = "HAS_HOST"
     source: str
     target: str
     type: Literal[
