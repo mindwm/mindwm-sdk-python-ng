@@ -91,105 +91,105 @@ class MindwmRelationship(BaseRelationship):
 
 
 class UserHasHost(MindwmRelationship):
-    __relationshiptype__: ClassVar[str] = "HAS_HOST"
-    source: User
-    target: Host
+    f_relationshiptype__: ClassVar[str] = "HAS_HOST"
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.user_has_host'] = 'org.mindwm.v1.graph.relationship.user_has_host'
 
 
 class HostHasTmux(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_TMUX"
-    source: Host
-    target: Tmux
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.host_has_tmux'] = 'org.mindwm.v1.graph.relationship.host_has_tmux'
 
 
 class TmuxHasTmuxSession(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_TMUXSESSION"
-    source: Tmux
-    target: TmuxSession
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.tmux_has_tmuxsession'] = 'org.mindwm.v1.graph.relationship.tmux_has_tmuxsession'
 
 
 class TmuxSessionHasTmuxPane(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_TMUXPANE"
-    source: TmuxSession
-    target: TmuxPane
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.tmuxsession_has_tmuxpane'] = 'org.mindwm.v1.graph.relationship.tmuxsession_has_tmuxpane'
 
 
 class TmuxPaneHasIoDocument(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_IODOCUMENT"
-    source: TmuxPane
-    target: IoDocument
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.tmuxpane_has_iodocument'] = 'org.mindwm.v1.graph.relationship.tmuxpane_has_iodocument'
 
 
 class HostHasClipboard(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_CLIPBOARD"
-    source: Host
-    target: Clipboard
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.host_has_clipboard'] = 'org.mindwm.v1.graph.relationship.host_has_clipboard'
 
 
 class UserHasTmux(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_TMUX"
-    source: User
-    target: Tmux
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.user_has_tmux'] = 'org.mindwm.v1.graph.relationship.user_has_tmux'
 
 
 class IoDocumentHasUser(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_USER"
-    source: IoDocument
-    target: User
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.iodocument_has_user'] = 'org.mindwm.v1.graph.relationship.iodocument_has_user'
 
 
 class UserHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
-    source: User
-    target: Parameter
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.user_has_parameter'] = 'org.mindwm.v1.graph.relationship.user_has_parameter'
 
 
 class HostHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
-    source: Host
-    target: Parameter
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.host_has_parameter'] = 'org.mindwm.v1.graph.relationship.host_has_parameter'
 
 
 class TmuxHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
-    source: Tmux
-    target: Parameter
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.tmux_has_parameter'] = 'org.mindwm.v1.graph.relationship.tmux_has_parameter'
 
 
 class TmuxSessionHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
-    source: TmuxSession
-    target: Parameter
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.tmuxsession_has_parameter'] = 'org.mindwm.v1.graph.relationship.tmuxsession_has_parameter'
 
 
 class TmuxPaneHasParameter(MindwmRelationship):
     __relationshiptype__: ClassVar[str] = "HAS_PARAMETER"
-    source: TmuxPane
-    target: Parameter
+    source: str
+    target: str
     type: Literal[
         'org.mindwm.v1.graph.relationship.tmuxpane_has_parameter'] = 'org.mindwm.v1.graph.relationship.tmuxpane_has_parameter'
 
@@ -329,21 +329,23 @@ class GraphObjectChanged(BaseModel):
 
             case 'relationship':
                 start_label = cdc.payload.start.labels[0].lower()
-                start_ids = cdc.payload.start.ids
-                start_node = {
-                    "type": f"org.mindwm.v1.graph.node.{start_label}"
-                } | start_ids
+                start_id = cdc.payload.start.id
+                # start_node = {
+                #     "type": f"org.mindwm.v1.graph.node.{start_label}"
+                #     "id": start_id
+                # } 
                 end_label = cdc.payload.end.labels[0].lower()
-                end_ids = cdc.payload.end.ids
-                end_node = {
-                    "type": f"org.mindwm.v1.graph.node.{end_label}"
-                } | end_ids
+                end_id = cdc.payload.end.id
+                # end_node = {
+                #     "type": f"org.mindwm.v1.graph.node.{end_label}"
+                #     "id": end_id
+                # } 
                 obj_type = f"org.mindwm.v1.graph.relationship.{start_label}_{cdc.payload.label.lower()}"
                 obj_dict = {
                     "type": f"org.mindwm.v1.graph.{cdc.meta.operation}",
                     "obj": {
-                        "source": start_node,
-                        "target": end_node,
+                        "source": start_id,
+                        "target": end_id,
                         "type": obj_type,
                     }
                 }
