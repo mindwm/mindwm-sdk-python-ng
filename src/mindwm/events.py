@@ -120,10 +120,10 @@ class NatsInterface:
                     res = await callback(message)
 
             span.set_attribute("subject", subj)
-            span.set_attribute("ce-id", msg.headers['ce-id'])
-            span.set_attribute("ce-subject", msg.headers['ce-subject'])
-            span.set_attribute("ce-source", msg.headers['ce-source'])
-            span.set_attribute("ce-type", msg.headers['ce-type'])
+            span.set_attribute("ce-id", data['id'])
+            span.set_attribute("ce-subject", data['subject'])
+            span.set_attribute("ce-source", data['source'])
+            span.set_attribute("ce-type", data['type'])
             return res
 
 
