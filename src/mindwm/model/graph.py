@@ -214,18 +214,21 @@ ChangedObject = Annotated[Union[User, Host, Tmux, TmuxSession, TmuxPane,
 
 
 class GraphObjectCreated(BaseModel):
+    id: int
     type: Literal[
         'org.mindwm.v1.graph.created'] = 'org.mindwm.v1.graph.created'
     obj: ChangedObject
 
 
 class GraphObjectUpdated(BaseModel):
+    id: int
     type: Literal[
         'org.mindwm.v1.graph.updated'] = 'org.mindwm.v1.graph.updated'
     obj: ChangedObject
 
 
 class GraphObjectDeleted(BaseModel):
+    id: int
     type: Literal[
         'org.mindwm.v1.graph.deleted'] = 'org.mindwm.v1.graph.deleted'
     obj: ChangedObject
@@ -323,6 +326,7 @@ class GraphObjectChanged(BaseModel):
                 label = obj_payload.labels[0].lower()
                 props = obj_payload.properties
                 obj_dict = {
+                    "id": cdc.payload.id,
                     "type": f"org.mindwm.v1.graph.{cdc.meta.operation}",
                     "obj": props.model_dump(),
                 }
