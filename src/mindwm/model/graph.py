@@ -346,6 +346,7 @@ class GraphObjectChanged(BaseModel):
                 # } 
                 obj_type = f"org.mindwm.v1.graph.relationship.{start_label}_{cdc.payload.label.lower()}"
                 obj_dict = {
+                    "id": cdc.payload.id,
                     "type": f"org.mindwm.v1.graph.{cdc.meta.operation}",
                     "obj": {
                         "source": start_id,
