@@ -113,11 +113,9 @@ class NatsInterface:
         with tracer.start_as_current_span("message_handler",
                                           context=ctx) as span:
             res = None
-            if 'message' in data.keys():
-                message = data['message']
 
-                if callback:
-                    res = await callback(message)
+            if callback:
+                res = await callback(data)
 
             span.set_attribute("subject", subj)
             span.set_attribute("ce-id", data['id'])
