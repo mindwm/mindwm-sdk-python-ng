@@ -80,7 +80,7 @@ class MindmapNode(MindwmObject):
     details: str
     note: str
     attributes: Dict[str, str]
-    type: Literal['org.mindwm.v1.iodocument'] = 'org.mindwm.v1.iodocument'
+    type: Literal['org.mindwm.v1.mindmap.node.update'] = 'org.mindwm.v1.mindmap.node.update'
 
 
 class Parameter(MindwmObject):
