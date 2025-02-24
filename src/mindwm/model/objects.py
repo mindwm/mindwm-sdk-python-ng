@@ -56,6 +56,7 @@ class IoDocument(MindwmObject):
     type: Literal['org.mindwm.v1.iodocument'] = 'org.mindwm.v1.iodocument'
 
 
+
 class Touch(MindwmObject):
     ids: List[int]
     type: Literal['org.mindwm.v1.touch'] = 'org.mindwm.v1.touch'
@@ -73,6 +74,13 @@ class Clipboard(MindwmObject):
     time: int
     data: str
     type: Literal['org.mindwm.v1.clipboard'] = 'org.mindwm.v1.clipboard'
+
+class MindmapNode(MindwmObject):
+    title: str
+    details: str
+    note: str
+    attributes: Dict[str, str]
+    type: Literal['org.mindwm.v1.iodocument'] = 'org.mindwm.v1.iodocument'
 
 
 class Parameter(MindwmObject):
